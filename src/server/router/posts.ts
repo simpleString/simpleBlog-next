@@ -5,7 +5,11 @@ import { createProtectedRouter } from "./protected-router";
 export const postRouter = createRouter()
   .query("posts", {
     resolve({ ctx }) {
-      return ctx.prisma.post.findMany({ include: { user: true } });
+      let userId: undefined | string;
+      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
+      return ctx.prisma.post.findMany({
+        include: { user: true, likes: { where: { userId } } },
+      });
     },
   })
   .query("post", {
@@ -13,9 +17,18 @@ export const postRouter = createRouter()
       postId: z.string(),
     }),
     resolve({ input, ctx }) {
+      let userId: undefined | string;
+      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
+
       return ctx.prisma.post.findFirst({
         where: { id: input.postId },
-        include: { comments: { include: { user: true } } },
+        include: {
+          likes: {
+            where: { postId: input.postId, userId },
+            take: 1,
+          },
+          comments: { include: { user: true } },
+        },
       });
     },
   })
@@ -69,6 +82,7 @@ export const postRouter = createRouter()
               },
             });
           }
+          console.log(input);
 
           return ctx.prisma.post.update({
             where: {

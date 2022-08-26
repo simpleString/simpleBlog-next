@@ -9,7 +9,7 @@ const Home: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Create T3 App</title>
+        <title>Simple Blog</title>
         <meta name="description" content="SimpleBlog" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

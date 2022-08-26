@@ -1,4 +1,6 @@
 import ChatBubbleLeftIcon from "@heroicons/react/24/outline/ChatBubbleLeftIcon";
+import ChevronDown from "@heroicons/react/24/outline/ChevronDownIcon";
+import ChevronUp from "@heroicons/react/24/outline/ChevronUpIcon";
 import Document from "@tiptap/extension-document";
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
@@ -12,8 +14,6 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { getBaseUrl } from "../_app";
-import ChevronUp from "@heroicons/react/24/outline/ChevronUpIcon";
-import ChevronDown from "@heroicons/react/24/outline/ChevronDownIcon";
 
 const Post: React.FC = () => {
   const router = useRouter();
@@ -22,8 +22,17 @@ const Post: React.FC = () => {
   const post = trpc.useQuery(["post.post", { postId }]);
   const [comment, setComment] = useState("");
   const session = useSession();
-  const createComment = trpc.useMutation(["post.createComment"]);
-  const createLike = trpc.useMutation(["post.createLike"]);
+  const utils = trpc.useContext();
+  const createComment = trpc.useMutation(["post.createComment"], {
+    onSuccess() {
+      utils.invalidateQueries(["post.post"]);
+    },
+  });
+  const createLike = trpc.useMutation(["post.createLike"], {
+    onSuccess() {
+      utils.invalidateQueries(["post.post"]);
+    },
+  });
 
   const isAuthAndDataExists = (): boolean => {
     if (!session.data) {
@@ -61,7 +70,7 @@ const Post: React.FC = () => {
     },
   });
 
-  if (post.isLoading) {
+  if (post.isFetching) {
     console.log("loading");
 
     return <div>Loading...</div>;
@@ -72,16 +81,22 @@ const Post: React.FC = () => {
       <div className="border-2 border-black ">
         <EditorContent
           content={
-            post.data && post.data.text ? JSON.parse(post.data.text) : ""
+            post.isFetching
+              ? ""
+              : post.data && post.data.text
+              ? JSON.parse(post.data.text)
+              : ""
           }
           className=""
           editor={editor}
         />
       </div>
 
-      <div className="flex p-4 items-center">
-        <ChatBubbleLeftIcon className="w-6 h-6 mr-2 motion-safe:hover:scale-105 duration-500 hover:fill-current" />
-        <span>{post.data?.commentsCount}</span>
+      <div className="flex p-4 items-center border-2 border-black ">
+        <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
+          <ChatBubbleLeftIcon className="w-6 h-6 mr-2 group-hover:fill-current" />
+          <span>{post.data?.commentsCount}</span>
+        </div>
         <div className="ml-auto flex items-center">
           <ChevronDown
             onClick={async () => {
@@ -93,7 +108,12 @@ const Post: React.FC = () => {
                 });
               }
             }}
-            className="w-6 h-6 cursor-pointer"
+            className={`${
+              !post.data?.likes[0]?.isPositive
+                ? "text-red-700"
+                : "hover:text-red-900 cursor-pointer motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
+            }
+              w-6 h-6 `}
           />
           <span>{post.data?.likesValue}</span>
           <ChevronUp
@@ -106,7 +126,12 @@ const Post: React.FC = () => {
                 });
               }
             }}
-            className="w-6 h-6 cursor-pointer"
+            className={`${
+              post.data?.likes[0]?.isPositive
+                ? "text-green-700"
+                : "hover:text-green-900 cursor-pointer motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
+            }
+              w-6 h-6 `}
           />
         </div>
       </div>

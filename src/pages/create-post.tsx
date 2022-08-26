@@ -8,7 +8,12 @@ import { trpc } from "../utils/trpc";
 const CreatePost: React.FC = () => {
   useSession({ required: true });
   const [content, setContent] = useState<JSONContent>();
-  const createPost = trpc.useMutation(["post.create-posts"]);
+  const utils = trpc.useContext();
+  const createPost = trpc.useMutation(["post.create-posts"], {
+    onSuccess() {
+      utils.invalidateQueries(["post.posts"]);
+    },
+  });
   const router = useRouter();
 
   return (

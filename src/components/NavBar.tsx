@@ -6,9 +6,15 @@ import { trpc } from "../utils/trpc";
 export const NavBar: React.FC = () => {
   const me = trpc.useQuery(["user.me"]);
 
+  console.log(me);
+
+  if (me.isFetching) {
+    <div>Loading...</div>;
+  }
+
   return (
     <nav className="bg-yellow-200 z-50 sticky top-0">
-      <div className="md:container mx-auto flex items-center lg:w-2/3 h-16">
+      <div className="md:container mx-auto flex items-center lg:w-2/3 h-16 px-4">
         <NextLink href="/">
           <a className="font-semibold text-lg motion-safe:hover:scale-105 duration-100 text-center">
             SimpleBlog
