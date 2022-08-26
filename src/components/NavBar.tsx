@@ -7,7 +7,7 @@ export const NavBar: React.FC = () => {
   const me = trpc.useQuery(["user.me"]);
 
   return (
-    <nav className="bg-teal-600 z-50 sticky top-0">
+    <nav className="bg-yellow-200 z-50 sticky top-0">
       <div className="md:container mx-auto flex items-center lg:w-2/3 h-16">
         <NextLink href="/">
           <a className="font-semibold text-lg motion-safe:hover:scale-105 duration-100 text-center">

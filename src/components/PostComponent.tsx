@@ -13,8 +13,10 @@ type PostProps = {
 export const PostComponent: React.FC<PostProps> = ({ post }) => {
   console.log(post);
 
+  console.log(post.img);
+
   return (
-    <div className="flex flex-col  bg-slate-400 w-screen md:max-w-xl rounded-lg">
+    <div className="flex flex-col  bg-yellow-50 border-2 border-black w-screen max-w-3xl rounded-lg">
       <div className="flex p-4">
         <div className="mr-6">
           <Image
@@ -37,14 +39,25 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
 
       <NextLink href={`/post/${post.id}`} passHref>
         <div>
-          <Image
-            className="p-0 cursor-pointer"
-            src={"/testImage.jpg"}
-            alt="Post image"
-            layout="responsive"
-            width="640"
-            height="360"
-          />
+          {!post.img ? (
+            <Image
+              className="p-0 cursor-pointer"
+              src={"/testImage.jpg"}
+              alt="Post image"
+              layout="responsive"
+              width="640"
+              height="360"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="p-0 cursor-pointer"
+              src={post.img}
+              alt="Post image"
+              width="100%"
+              height="360"
+            />
+          )}
         </div>
       </NextLink>
       <div className="flex p-4">
@@ -78,7 +91,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
               d="M19.5 8.25l-7.5 7.5-7.5-7.5"
             />
           </svg>
-          <span>{post.likesCount}</span>
+          <span>{post.likesValue}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
