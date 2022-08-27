@@ -15,7 +15,7 @@ const Home: NextPage = () => {
       </Head>
 
       <main className="container mx-auto flex flex-col items-center justify-center min-h-screen p-4">
-        {posts.isFetching ? (
+        {posts.isLoading ? (
           <div>Loading...</div>
         ) : (
           posts.data?.map((post) => <PostComponent key={post.id} post={post} />)

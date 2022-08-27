@@ -11,7 +11,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../../utils/trpc";
 import { getBaseUrl } from "../_app";
 
@@ -61,7 +61,7 @@ const Post: React.FC = () => {
       Placeholder,
     ],
     editable: false,
-    content: post.data && post.data.text ? JSON.parse(post.data.text) : "",
+    content: "",
     editorProps: {
       attributes: {
         class:
@@ -70,7 +70,19 @@ const Post: React.FC = () => {
     },
   });
 
-  if (post.isFetching) {
+  useEffect(() => {
+    editor?.commands.setContent(
+      post.data && post.data.text ? JSON.parse(post.data.text) : ""
+    );
+  }, [editor, post.data]);
+
+  // setTimeout(() => {
+  //   if (editor && !editor.isDestroyed) {
+  //     editor.createNodeViews();
+  //   }
+  // }, 1000);
+
+  if (post.isLoading) {
     console.log("loading");
 
     return <div>Loading...</div>;
@@ -80,13 +92,13 @@ const Post: React.FC = () => {
     <div className="max-w-3xl  mx-auto space-y-2">
       <div className="border-2 border-black ">
         <EditorContent
-          content={
-            post.isFetching
-              ? ""
-              : post.data && post.data.text
-              ? JSON.parse(post.data.text)
-              : ""
-          }
+          // content={
+          //   post.isLoading
+          //     ? ""
+          //     : post.data && post.data.text
+          //     ? JSON.parse(post.data.text)
+          //     : ""
+          // }
           className=""
           editor={editor}
         />
