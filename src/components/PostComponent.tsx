@@ -1,6 +1,6 @@
 import ChatBubbleLeftIcon from "@heroicons/react/24/outline/ChatBubbleLeftIcon";
-import ChevronDown from "@heroicons/react/24/outline/ChevronDownIcon";
-import ChevronUp from "@heroicons/react/24/outline/ChevronUpIcon";
+import ChevronDownIcon from "@heroicons/react/24/outline/ChevronDownIcon";
+import ChevronUpIcon from "@heroicons/react/24/outline/ChevronUpIcon";
 import { Like, Post as PrismaPost } from "@prisma/client";
 import { User } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -21,13 +21,11 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
   const session = useSession();
   const router = useRouter();
   const utils = trpc.useContext();
-  const createLike = trpc.useMutation(["post.createLike"], {
+  const createLike = trpc.useMutation(["post.like"], {
     onSuccess() {
       utils.invalidateQueries(["post.posts"]);
     },
   });
-
-  console.log(post);
 
   const isAuthAndDataExists = (): boolean => {
     if (!session.data) {
@@ -37,7 +35,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
   };
 
   return (
-    <div className="flex flex-col  bg-yellow-50 border-2 border-black w-screen max-w-3xl rounded-lg my-8">
+    <div className="flex flex-col  bg-yellow-50 border-2 border-black w-screen max-w-3xl  my-8">
       <div className="flex p-4">
         <div className="mr-6">
           <Image
@@ -81,13 +79,13 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
           )}
         </div>
       </NextLink>
-      <div className="flex p-4 items-center border-2 border-black ">
+      <div className="flex p-4 items-center border-1 border-black ">
         <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
           <ChatBubbleLeftIcon className="w-6 h-6 mr-2 group-hover:fill-current" />
           <span>{post.commentsCount}</span>
         </div>
         <div className="ml-auto flex items-center">
-          <ChevronDown
+          <ChevronDownIcon
             onClick={async () => {
               if (isAuthAndDataExists()) {
                 await createLike.mutateAsync({
@@ -98,14 +96,14 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
               }
             }}
             className={`${
-              !post.likes[0]?.isPositive
+              !post.likes[0]?.isPositive && post.likes[0]?.isPositive !== null
                 ? "text-red-700"
-                : "hover:text-red-900 cursor-pointer motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
+                : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
             }
-              w-6 h-6 `}
+              w-6 h-6 cursor-pointer`}
           />
           <span>{post.likesValue}</span>
-          <ChevronUp
+          <ChevronUpIcon
             onClick={async () => {
               if (isAuthAndDataExists()) {
                 await createLike.mutateAsync({
@@ -118,9 +116,9 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
             className={`${
               post.likes[0]?.isPositive
                 ? "text-green-700"
-                : "hover:text-green-900 cursor-pointer motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
+                : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
             }
-              w-6 h-6 `}
+              w-6 h-6 cursor-pointer `}
           />
         </div>
       </div>

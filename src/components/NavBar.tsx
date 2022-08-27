@@ -1,32 +1,26 @@
-import { signOut } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { trpc } from "../utils/trpc";
 
-export const NavBar: React.FC = () => {
+const NavBar: React.FC = () => {
   const me = trpc.useQuery(["user.me"]);
-
-  console.log(me);
-
-  if (me.isFetching) {
-    <div>Loading...</div>;
-  }
 
   return (
     <nav className="bg-yellow-200 z-50 sticky top-0">
       <div className="md:container mx-auto flex items-center lg:w-2/3 h-16 px-4">
         <NextLink href="/">
-          <a className="font-semibold text-lg motion-safe:hover:scale-105 duration-100 text-center">
+          <a className="font-semibold text-lg motion-safe:hover:scale-105 duration-100 text-center mr-2">
             SimpleBlog
           </a>
         </NextLink>
-        <div className="mx-auto">
-          <NextLink href="/create-post">
-            <a>Create post</a>
-          </NextLink>
-        </div>
+        <NextLink href="/create-post">
+          <a className="font-semibold text-lg motion-safe:hover:scale-105 duration-100 text-center mr-2">
+            Create post
+          </a>
+        </NextLink>
         <div className="ml-auto flex">
-          {me.data && typeof me.data !== "undefined" ? (
+          {!me.isFetching && me.data?.image ? (
             <Image
               onClick={() => signOut()}
               className="rounded-full cursor-pointer"
@@ -36,15 +30,17 @@ export const NavBar: React.FC = () => {
               height="48"
             />
           ) : (
-            <NextLink
+            <button
               className="motion-safe:hover:scale-105 duration-100 text-center"
-              href="/login"
+              onClick={() => signIn()}
             >
-              <a>SignUp</a>
-            </NextLink>
+              Sign in
+            </button>
           )}
         </div>
       </div>
     </nav>
   );
 };
+
+export default NavBar;

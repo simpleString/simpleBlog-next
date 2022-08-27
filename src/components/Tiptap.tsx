@@ -6,9 +6,10 @@ import Typography from "@tiptap/extension-typography";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import NextLink from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Modal } from "./Modal";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AddImage = ({ editor }: { editor: any }) => {
   const [showModal, setShowModal] = useState(false);
 
@@ -41,6 +42,7 @@ export const AddImage = ({ editor }: { editor: any }) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MenuBar = ({ editor }: { editor: any }) => {
   if (!editor) {
     return null;
@@ -272,7 +274,7 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
       const item = editor.getJSON();
       setContent(item);
     },
-    content: "",
+    content,
     editorProps: {
       attributes: {
         class:
@@ -293,7 +295,6 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (content.content![0]!.content) {
-      console.log("--------------title exist!!!!!!--------------------");
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       titleAndImg.title = content.content![0]!.content![0]!.text!;
     }
@@ -302,7 +303,6 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
 
     content.content?.forEach((item) => {
       if (notUpdated && item.type === "image") {
-        console.log("Image exists");
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         if (typeof item.attrs !== "undefined") {
           titleAndImg.img = item.attrs.src;
@@ -315,6 +315,10 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
       onSave(titleAndImg);
     }
   };
+
+  useEffect(() => {
+    editor?.commands.setContent(content || "");
+  }, [editor, content]);
 
   return (
     <>
