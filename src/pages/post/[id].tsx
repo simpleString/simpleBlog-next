@@ -1,6 +1,7 @@
 import ChatBubbleLeftIcon from "@heroicons/react/24/outline/ChatBubbleLeftIcon";
 import ChevronDownIcon from "@heroicons/react/24/outline/ChevronDownIcon";
 import ChevronUpIcon from "@heroicons/react/24/outline/ChevronUpIcon";
+import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
 import Document from "@tiptap/extension-document";
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
@@ -10,12 +11,12 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import CustomTextarea from "../../components/CustomTextarea";
 import { trpc } from "../../utils/trpc";
 import { getBaseUrl } from "../_app";
-import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
-import NextLink from "next/link";
 
 const Post: React.FC = () => {
   const router = useRouter();
@@ -88,14 +89,10 @@ const Post: React.FC = () => {
     );
   }, [editor, post.data]);
 
-  if (post.isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="max-w-3xl mx-auto space-y-2 mb-5">
       <div className="border-2 border-black ">
-        <EditorContent className="" editor={editor} />
+        <EditorContent editor={editor} />
       </div>
 
       <div className="flex p-4 items-center border-2 border-black ">
@@ -153,11 +150,13 @@ const Post: React.FC = () => {
           />
         </div>
       </div>
-      <div className="border border-gray-800 rounded-md mb-4 ">
-        <textarea
-          className="min-w-full resize-y border-none focus:border-none"
+      <div className="border border-gray-800 mb-4 ">
+        <CustomTextarea
           value={comment}
-          onChange={(e) => setComment(e.target.value || "")}
+          placeholder="Write your comment here..."
+          onChange={(e) => {
+            setComment(e.target.value || "");
+          }}
         />
         <div className="flex justify-end pb-4">
           <button
@@ -216,9 +215,10 @@ const Post: React.FC = () => {
               ) : null}
             </div>
             {commentIndex === index ? (
-              <div className="border border-gray-800 rounded-md mb-4 ">
-                <textarea
-                  className="min-w-full resize-y border-none focus:border-none"
+              <div className="border border-gray-800 mb-4 ">
+                <CustomTextarea
+                  className="bg-inherit"
+                  placeholder="Write your comment here..."
                   value={editableComment}
                   onChange={(e) => setEditableComment(e.target.value || "")}
                 />
