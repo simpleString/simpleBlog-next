@@ -154,8 +154,11 @@ const Post: React.FC = () => {
         <CustomTextarea
           value={comment}
           placeholder="Write your comment here..."
+          placeholder="Write your comment here..."
           onChange={(e) => {
-            setComment(e.target.value || "");
+            {
+              setComment(e.target.value || "");
+            }
           }}
         />
         <div className="flex justify-end pb-4">
