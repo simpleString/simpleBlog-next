@@ -46,7 +46,7 @@ export default withTRPC<AppRouter>({
 
       queryClientConfig: {
         defaultOptions: {
-          queries: { staleTime: 60 * 200, refetchOnWindowFocus: false },
+          queries: { staleTime: 1000 * 60 * 10, refetchOnWindowFocus: false },
         },
       },
     };

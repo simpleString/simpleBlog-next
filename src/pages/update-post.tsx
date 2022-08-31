@@ -12,8 +12,6 @@ const UpdatePost: React.FC = () => {
   const [content, setContent] = useState<JSONContent>();
   const postId = router.query.id as string;
 
-  console.log("postId is: ", postId);
-
   const utils = trpc.useContext();
 
   const post = trpc.useQuery(["post.post", { postId }]);
@@ -27,8 +25,6 @@ const UpdatePost: React.FC = () => {
   useEffect(() => {
     if (post.data && post.data.text) setContent(JSON.parse(post.data.text));
   }, [post?.data]);
-
-  console.log(content);
 
   return (
     <div className="container mx-auto mt-10 h-screen">

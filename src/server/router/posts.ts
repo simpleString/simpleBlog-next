@@ -170,9 +170,21 @@ export const postRouter = createRouter()
           text: z.string(),
           img: z.string().url(),
         }),
-        resolve({ input, ctx }) {
-          return ctx.prisma.post.create({
-            data: { ...input, userId: ctx.session.user.id },
+        async resolve({ input, ctx }) {
+          // Check that it's a image
+          const result = await fetch(input.img);
+          if (
+            result.status === 200 &&
+            result.headers.has("Content-Type") &&
+            result.headers.get("Content-Type")?.includes("image/")
+          ) {
+            return ctx.prisma.post.create({
+              data: { ...input, userId: ctx.session.user.id },
+            });
+          }
+          throw new trpc.TRPCError({
+            code: "PARSE_ERROR",
+            message: "Image didn't exists.",
           });
         },
       })
