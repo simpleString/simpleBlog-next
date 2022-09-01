@@ -1,4 +1,5 @@
 import { TextareaHTMLAttributes, useEffect, useRef } from "react";
+import { twMerge } from "tailwind-merge";
 
 const CustomTextarea: React.FC<TextareaHTMLAttributes<HTMLTextAreaElement>> = (
   props
@@ -16,9 +17,10 @@ const CustomTextarea: React.FC<TextareaHTMLAttributes<HTMLTextAreaElement>> = (
   return (
     <textarea
       {...props}
-      className={
-        "min-w-full resize-none outline-none h-fit p-2 " + props.className
-      }
+      className={twMerge(
+        "min-w-full resize-none outline-none h-fit p-2 ",
+        props.className
+      )}
       ref={textareaRef}
     />
   );

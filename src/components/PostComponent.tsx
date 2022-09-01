@@ -8,6 +8,7 @@ import Image from "next/image";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
+import { useScrollState } from "../store";
 import { trpc } from "../utils/trpc";
 
 type PostProps = {
@@ -21,6 +22,9 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
   const session = useSession();
   const router = useRouter();
   const utils = trpc.useContext();
+  const updateScrollPosition = useScrollState(
+    (state) => state.updateScrollPosition
+  );
   const createLike = trpc.useMutation(["post.like"], {
     onSuccess() {
       utils.invalidateQueries(["post.posts"]);
@@ -52,12 +56,17 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
 
       <div>
         <NextLink href={`/post/${post.id}`}>
-          <a className="font-medium text-2xl mt-2 p-4">{post.title}</a>
+          <a
+            onClick={() => updateScrollPosition(window.pageYOffset)}
+            className="font-medium text-2xl mt-2 p-4"
+          >
+            {post.title}
+          </a>
         </NextLink>
       </div>
 
       <NextLink href={`/post/${post.id}`} passHref>
-        <div>
+        <div onClick={() => updateScrollPosition(window.pageYOffset)}>
           {!post.img ? (
             <Image
               className="p-0 cursor-pointer"

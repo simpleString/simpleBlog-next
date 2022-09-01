@@ -13,12 +13,13 @@ import { useSession } from "next-auth/react";
 import NextImage from "next/image";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import CustomTextarea from "../../components/CustomTextarea";
+import { Layout } from "../../components/Layout";
 import { trpc } from "../../utils/trpc";
-import { getBaseUrl } from "../_app";
+import { getBaseUrl, NextPageWithLayout } from "../_app";
 
-const Post: React.FC = () => {
+const Post: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
 
   const postId = router.query.id as string;
@@ -253,6 +254,10 @@ const Post: React.FC = () => {
       </div>
     </div>
   );
+};
+
+Post.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default Post;

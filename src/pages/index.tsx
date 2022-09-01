@@ -1,10 +1,18 @@
-import type { NextPage } from "next";
 import Head from "next/head";
+import { ReactElement, useEffect } from "react";
+import { Layout } from "../components/Layout";
 import { PostComponent } from "../components/PostComponent";
+import { useScrollState } from "../store";
 import { trpc } from "../utils/trpc";
+import { NextPageWithLayout } from "./_app";
 
-const Home: NextPage = () => {
+const Home: NextPageWithLayout<React.FC> = () => {
   const posts = trpc.useQuery(["post.posts"]);
+  const scrollPosition = useScrollState((state) => state.scrollPosition);
+
+  useEffect(() => {
+    window.scrollTo(0, scrollPosition);
+  }, [scrollPosition]);
 
   return (
     <>
@@ -23,6 +31,10 @@ const Home: NextPage = () => {
       </main>
     </>
   );
+};
+
+Home.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default Home;

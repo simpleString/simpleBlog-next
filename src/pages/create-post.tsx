@@ -1,11 +1,13 @@
 import { JSONContent } from "@tiptap/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { ReactElement, useState } from "react";
+import { Layout } from "../components/Layout";
 import Tiptap from "../components/Tiptap";
 import { trpc } from "../utils/trpc";
+import type { NextPageWithLayout } from "./_app";
 
-const CreatePost: React.FC = () => {
+const CreatePost: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
   const [content, setContent] = useState<JSONContent>();
   const utils = trpc.useContext();
@@ -32,6 +34,10 @@ const CreatePost: React.FC = () => {
       />
     </div>
   );
+};
+
+CreatePost.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default CreatePost;

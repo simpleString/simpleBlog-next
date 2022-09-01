@@ -1,11 +1,13 @@
 import { JSONContent } from "@tiptap/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
+import { Layout } from "../components/Layout";
 import Tiptap from "../components/Tiptap";
 import { trpc } from "../utils/trpc";
+import { NextPageWithLayout } from "./_app";
 
-const UpdatePost: React.FC = () => {
+const UpdatePost: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
   const router = useRouter();
 
@@ -43,6 +45,10 @@ const UpdatePost: React.FC = () => {
       />
     </div>
   );
+};
+
+UpdatePost.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };
 
 export default UpdatePost;
