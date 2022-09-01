@@ -1,10 +1,10 @@
 import { useIsFetching } from "react-query";
 
-export const GlobalLoadingSpinner: React.FC = () => {
+const LoadingSpinner: React.FC = () => {
   const isFetching = useIsFetching();
 
   return isFetching ? (
-    <div className="fixed top-10 mx-auto z-[51] left-1/2 -translate-x-1/2">
+    <div className="fixed top-1/2 mx-auto z-[51] left-1/2 -translate-x-1/2 -translate-y-1.5">
       <div role="status">
         <svg
           className="inline mr-2 w-16 h-16 text-gray-200 animate-spin dark:text-gray-600 fill-yellow-500"
@@ -26,3 +26,5 @@ export const GlobalLoadingSpinner: React.FC = () => {
     </div>
   ) : null;
 };
+
+export default LoadingSpinner;

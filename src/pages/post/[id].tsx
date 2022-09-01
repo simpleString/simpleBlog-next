@@ -18,6 +18,22 @@ import CustomTextarea from "../../components/CustomTextarea";
 import { Layout } from "../../components/Layout";
 import { trpc } from "../../utils/trpc";
 import { getBaseUrl, NextPageWithLayout } from "../_app";
+import ContentLoader from "react-content-loader";
+
+const HeadBodyGrid = (props: any) => (
+  <ContentLoader
+    speed={2}
+    viewBox="0 0 400 460"
+    backgroundColor="#f3f3f3"
+    foregroundColor="#ecebeb"
+    {...props}
+  >
+    <rect x="15" y="15" rx="4" ry="4" width="350" height="25" />
+    <rect x="15" y="50" rx="2" ry="2" width="350" height="250" />
+    <rect x="508" y="535" rx="2" ry="2" width="170" height="20" />
+    <rect x="581" y="526" rx="2" ry="2" width="170" height="20" />
+  </ContentLoader>
+);
 
 const Post: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
@@ -93,7 +109,11 @@ const Post: NextPageWithLayout<React.FC> = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-2 mb-5">
       <div className="border-2 border-black ">
-        <EditorContent editor={editor} />
+        {post.isLoading ? (
+          <HeadBodyGrid className="min-w-full" />
+        ) : (
+          <EditorContent editor={editor} />
+        )}
       </div>
 
       <div className="flex p-4 items-center border-2 border-black ">

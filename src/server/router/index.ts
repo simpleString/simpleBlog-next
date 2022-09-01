@@ -8,10 +8,13 @@ import { setTimeout } from "timers/promises";
 
 export const appRouter = createRouter()
   .transformer(superjson)
-  .middleware(async ({ next }) => {
-    await setTimeout(1000);
-    return next();
-  })
+  // .middleware(async ({ next }) => {
+  //   console.log("start");
+  //   await setTimeout(6000);
+  //   console.log("end");
+
+  //   return next();
+  // })
   .merge("user.", userRouter)
   .merge("post.", postRouter);
 

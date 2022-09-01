@@ -27,10 +27,7 @@ const MyApp = ({
 
   return (
     <SessionProvider session={session}>
-      {/* <Layout> */}
       {getLayout(<Component {...pageProps} />)}
-      {/* <Component {...pageProps} /> */}
-      {/* </Layout> */}
     </SessionProvider>
   );
 };

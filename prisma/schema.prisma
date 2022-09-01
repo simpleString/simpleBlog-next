@@ -15,6 +15,14 @@ datasource db {
     url = env("DATABASE_URL")
 }
 
+model Tag {
+    id        String   @id @default(cuid())
+    title     String   @unique
+    post      Post[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
 model Post {
     id            String    @id @default(cuid())
     title         String
@@ -28,6 +36,7 @@ model Post {
     likesValue    Int       @default(0)
     commentsCount Int       @default(0)
     comments      Comment[]
+    tag           Tag[]
 }
 
 model Comment {
@@ -50,11 +59,6 @@ model Like {
 
     @@id([postId, userId])
 }
-
-// model Tag {
-//     id   String @id @default(cuid())
-//     text String
-// }
 
 // Necessary for Next auth
 model Account {

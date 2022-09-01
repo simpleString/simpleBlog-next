@@ -9,7 +9,7 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       return ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId } } },
+        include: { user: true, likes: { where: { userId } }, tag: true },
         orderBy: { createdAt: "desc" },
       });
     },
@@ -19,6 +19,8 @@ export const postRouter = createRouter()
       postId: z.string().cuid(),
     }),
     resolve({ input, ctx }) {
+      console.log("endpoint");
+
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
@@ -29,6 +31,7 @@ export const postRouter = createRouter()
             where: { postId: input.postId, userId },
             take: 1,
           },
+          tag: true,
           comments: { include: { user: true }, orderBy: { createdAt: "asc" } },
         },
       });
@@ -165,10 +168,12 @@ export const postRouter = createRouter()
         },
       })
       .mutation("createPost", {
+        //TODO: Need to check image guard!!!
         input: z.object({
           title: z.string().min(5),
           text: z.string(),
           img: z.string().url(),
+          tagIds: z.string().cuid().array().optional(),
         }),
         async resolve({ input, ctx }) {
           // Check that it's a image
@@ -189,11 +194,13 @@ export const postRouter = createRouter()
         },
       })
       .mutation("updatePost", {
+        //TODO: Need to check image guard!!!
         input: z.object({
           id: z.string().cuid(),
           title: z.string().min(5),
           text: z.string(),
           img: z.string().url(),
+          tagIds: z.string().cuid().array().optional(),
         }),
         async resolve({ input, ctx }) {
           const post = await ctx.prisma.post.findFirst({
