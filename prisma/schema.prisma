@@ -40,12 +40,17 @@ model Post {
 }
 
 model Comment {
-    id        String   @id @default(cuid())
-    text      String   @db.Text
-    post      Post     @relation(fields: [postId], references: [id])
-    postId    String
-    user      User     @relation(fields: [userId], references: [id])
-    userId    String
+    id     String @id @default(cuid())
+    text   String @db.Text
+    post   Post   @relation(fields: [postId], references: [id])
+    postId String
+    user   User   @relation(fields: [userId], references: [id])
+    userId String
+
+    mainCommentId    String?
+    mainComment      Comment?  @relation("CommentsChain", fields: [mainCommentId], references: [id])
+    childrenComments Comment[] @relation("CommentsChain")
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

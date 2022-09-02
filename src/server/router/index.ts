@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { postRouter } from "./posts";
 import { userRouter } from "./users";
 import { setTimeout } from "timers/promises";
+import { commentRouter } from "./comments";
 
 export const appRouter = createRouter()
   .transformer(superjson)
@@ -15,6 +16,7 @@ export const appRouter = createRouter()
 
   //   return next();
   // })
+  .merge("comment.", commentRouter)
   .merge("user.", userRouter)
   .merge("post.", postRouter);
 

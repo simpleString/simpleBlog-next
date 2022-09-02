@@ -1,7 +1,7 @@
 import { InferGetServerSidePropsType } from "next";
 import { getProviders, signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import CustomButton from "../../components/CustomButton";
+import CustomButton from "../../components/custom/CustomButton";
 import NextLink from "next/link";
 
 const Signin: React.FC<

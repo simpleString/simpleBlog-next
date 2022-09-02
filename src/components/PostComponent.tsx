@@ -99,7 +99,6 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
               if (isAuthAndDataExists()) {
                 await createLike.mutateAsync({
                   isPositive: false,
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   postId: post.id,
                 });
               }
@@ -117,7 +116,6 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
               if (isAuthAndDataExists()) {
                 await createLike.mutateAsync({
                   isPositive: true,
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                   postId: post.id,
                 });
               }
