@@ -18,13 +18,14 @@ export const postRouter = createRouter()
     input: z.object({
       postId: z.string().cuid(),
     }),
-    resolve({ input, ctx }) {
+    async resolve({ input, ctx }) {
       console.log("endpoint");
 
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
-      return ctx.prisma.post.findFirst({
+      const postResult = await ctx.prisma.post.findFirst({
+        //TODO: Rewrite it to one query in raw sql
         where: { id: input.postId },
         include: {
           likes: {
@@ -32,9 +33,35 @@ export const postRouter = createRouter()
             take: 1,
           },
           tag: true,
-          comments: { include: { user: true }, orderBy: { createdAt: "asc" } },
+          comments: {
+            include: {
+              user: true,
+              childrenComments: {
+                include: { user: true },
+                orderBy: { createdAt: "asc" },
+              },
+            },
+            where: { mainCommentId: null },
+            orderBy: { createdAt: "asc" },
+          },
         },
       });
+      // if (postResult) {
+      //   const comments = await Promise.all(
+      //     postResult?.comments.map(async (comment) => {
+      //       return ctx.prisma.comment.findMany({
+      //         where: { mainCommentId: comment.id },
+      //         include: { user: true },
+      //         orderBy: { createdAt: "asc" },
+      //       });
+      //     })
+      //   );
+      // }
+
+      // const firstChildComment = await ctx.prisma.comment.findMany({})
+
+      console.log(postResult);
+      return postResult;
     },
   })
   .merge(
@@ -131,16 +158,18 @@ export const postRouter = createRouter()
           tagIds: z.string().cuid().array().optional(),
         }),
         async resolve({ input, ctx }) {
+          console.log("create pospt: ", input);
+
           // Check that it's a image
+          return ctx.prisma.post.create({
+            data: { ...input, userId: ctx.session.user.id },
+          });
           const result = await fetch(input.img);
           if (
             result.status === 200 &&
             result.headers.has("Content-Type") &&
             result.headers.get("Content-Type")?.includes("image/")
           ) {
-            return ctx.prisma.post.create({
-              data: { ...input, userId: ctx.session.user.id },
-            });
           }
           throw new trpc.TRPCError({
             code: "PARSE_ERROR",

@@ -64,7 +64,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-2 mb-5">
-      <div className="border-2 border-black ">
+      <div className="flex flex-col border-2 border-black ">
         {post.isLoading ? (
           <HeadBodyGrid className="min-w-full" />
         ) : (

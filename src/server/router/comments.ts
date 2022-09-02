@@ -3,25 +3,58 @@ import { z } from "zod";
 import { createProtectedRouter } from "./protected-router";
 
 export const commentRouter = createProtectedRouter()
+  .query("getCommentByPostId", {
+    input: z.object({ postId: z.string().cuid() }),
+    resolve({ ctx, input }) {
+      return ctx.prisma.comment.findMany({
+        where: { postId: input.postId, mainCommentId: null },
+        include: { user: true, childrenComments: { include: { user: true } } },
+      });
+    },
+  })
+  .query("getAllCommentsByMainCommentId", {
+    input: z.object({
+      mainCommentId: z.string().cuid(),
+    }),
+    resolve({ input, ctx }) {
+      return ctx.prisma.comment.findMany({
+        where: { mainCommentId: input.mainCommentId },
+        include: { user: true },
+        orderBy: { createdAt: "asc" },
+      });
+    },
+  })
   .mutation("createComment", {
     input: z.object({
       text: z.string().min(1),
       postId: z.string().cuid(),
       mainCommentId: z.string().cuid().optional(),
     }),
-    resolve({ input, ctx }) {
-      return ctx.prisma.post.update({
+    async resolve({ input, ctx }) {
+      const post = await ctx.prisma.post.update({
         where: { id: input.postId },
         data: {
           comments: {
             create: {
-              ...input,
+              text: input.text,
+              mainCommentId: input.mainCommentId,
               userId: ctx.session.user.id,
             },
           },
           commentsCount: { increment: 1 },
         },
       });
+
+      if (input.mainCommentId) {
+        await ctx.prisma.comment.update({
+          data: {
+            childrenCount: { increment: 1 },
+          },
+          where: { id: input.mainCommentId },
+        });
+      }
+
+      return post;
     },
   })
   .mutation("updateComment", {
@@ -47,7 +80,7 @@ export const commentRouter = createProtectedRouter()
           id: input.id,
         },
         data: {
-          ...input,
+          text: input.text,
         },
       });
     },

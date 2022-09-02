@@ -50,6 +50,7 @@ model Comment {
     mainCommentId    String?
     mainComment      Comment?  @relation("CommentsChain", fields: [mainCommentId], references: [id])
     childrenComments Comment[] @relation("CommentsChain")
+    childrenCount    Int       @default(0)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
