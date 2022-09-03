@@ -10,17 +10,10 @@ const NavBarWithNoSSR = dynamic(() => import("./NavBar"), {
 });
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [hasWindow, setHasWindow] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHasWindow(true);
-    }
-  }, []);
-
   return (
     <div className="">
       {/* <GlobalLoadingSpinner /> */}
-      {hasWindow && <NavBarWithNoSSR />}
+      <NavBarWithNoSSR />
       {children}
       <Footer />
     </div>
