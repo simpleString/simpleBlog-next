@@ -1,7 +1,4 @@
-import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
 import { Comment, Like, Post, Tag, User } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import NextImage from "next/image";
 import { useState } from "react";
 import { trpc } from "../utils/trpc";
 import CommentRow from "./CommentRow";
@@ -26,38 +23,17 @@ type CommentSectionProps = {
 };
 
 const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
-  console.log("post is ", post);
-
   const checkIsAuth = useIsAuth("/post/" + post?.id);
-  const session = useSession();
 
   const utils = trpc.useContext();
-  const updateComment = trpc.useMutation(["comment.updateComment"], {
-    onSuccess() {
-      utils.invalidateQueries(["post.post", { postId: post?.id || "" }]);
-    },
-  }); //TODO: Make optimistic update!!!
+
   const createComment = trpc.useMutation(["comment.createComment"], {
     onSuccess() {
       utils.invalidateQueries(["post.post", { postId: post?.id || "" }]);
     },
   });
 
-  type CommentStateStatus = {
-    comment: string;
-    index: string;
-  };
-
   const [commentState, setCommentState] = useState("");
-  const [editableComment, setEditableComment] = useState<CommentStateStatus>({
-    comment: "",
-    index: "",
-  });
-
-  const [commentChain, setCommentChain] = useState<CommentStateStatus>({
-    comment: "",
-    index: "",
-  });
 
   return (
     <>

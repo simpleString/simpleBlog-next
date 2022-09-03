@@ -19,8 +19,6 @@ export const postRouter = createRouter()
       postId: z.string().cuid(),
     }),
     async resolve({ input, ctx }) {
-      console.log("endpoint");
-
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
@@ -60,7 +58,6 @@ export const postRouter = createRouter()
 
       // const firstChildComment = await ctx.prisma.comment.findMany({})
 
-      console.log(postResult);
       return postResult;
     },
   })
@@ -158,8 +155,6 @@ export const postRouter = createRouter()
           tagIds: z.string().cuid().array().optional(),
         }),
         async resolve({ input, ctx }) {
-          console.log("create pospt: ", input);
-
           // Check that it's a image
           return ctx.prisma.post.create({
             data: { ...input, userId: ctx.session.user.id },

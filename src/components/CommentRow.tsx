@@ -200,7 +200,9 @@ const CommentRow: React.FC<CommentRowProps> = ({ comment }) => {
           <div
             className="cursor-pointer text-xl hover:text-red-500"
             onClick={async () => {
-              await getMessageByParentId.refetch();
+              if (!isChilderOpen) {
+                await getMessageByParentId.refetch();
+              }
               setIsChilderOpen(!isChilderOpen);
             }}
           >
