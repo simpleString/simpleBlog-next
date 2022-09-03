@@ -105,7 +105,7 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
 
   useEffect(() => {
     editor?.commands.setContent(content || "");
-  }, [editor, content]);
+  }, [editor]);
 
   return (
     <>
