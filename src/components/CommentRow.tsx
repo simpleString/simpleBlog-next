@@ -1,12 +1,12 @@
-import NextImage from "next/image";
-import { Comment, Like, Post, Tag, User } from "@prisma/client";
-import { useSession } from "next-auth/react";
 import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
+import { Comment, User } from "@prisma/client";
+import { useSession } from "next-auth/react";
+import NextImage from "next/image";
 import { useState } from "react";
+import { trpc } from "../utils/trpc";
 import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
 import { useIsAuth } from "./hooks/isAuth";
-import { trpc } from "../utils/trpc";
 
 type CommentRowProps = {
   comment:
