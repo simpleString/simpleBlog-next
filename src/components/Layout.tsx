@@ -8,13 +8,19 @@ const NavBarWithNoSSR = dynamic(() => import("./NavBar"), {
   ssr: false,
 });
 
+const SidebarWithNoSSR = dynamic(() => import("./Sidebar"), {
+  ssr: false,
+});
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="">
-      {/* <GlobalLoadingSpinner /> */}
+    <>
       <NavBarWithNoSSR />
-      {children}
+      <div className="flex">
+        <SidebarWithNoSSR />
+        {children}
+      </div>
       <Footer />
-    </div>
+    </>
   );
 };

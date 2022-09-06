@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { getBaseUrl } from "../../pages/_app";
+import { getBaseUrl } from "../pages/_app";
 
 export const useIsAuth = (callbackUrl: string): (() => void) => {
   const router = useRouter();

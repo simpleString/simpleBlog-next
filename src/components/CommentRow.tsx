@@ -6,7 +6,7 @@ import { useState } from "react";
 import { trpc } from "../utils/trpc";
 import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
-import { useIsAuth } from "./hooks/isAuth";
+import { useIsAuth } from "../hooks/isAuth";
 
 type CommentRowProps = {
   comment:

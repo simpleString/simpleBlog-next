@@ -2,7 +2,8 @@ import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useScrollState } from "../store";
+import { useStore } from "zustand";
+import { useScrollState, useSidebarState } from "../store";
 import { trpc } from "../utils/trpc";
 
 const NavBar: React.FC = () => {
@@ -12,6 +13,8 @@ const NavBar: React.FC = () => {
   const themeMenu = useRef<HTMLDivElement>(null);
   const themeMenuButton = useRef<HTMLLabelElement>(null);
   const [searchMenuOpened, setSearchMenuOpened] = useState(false);
+
+  const toggleSidebar = useSidebarState((state) => state.toggle);
 
   useEffect(() => {
     if (!themeMenuOpened) {
@@ -32,7 +35,13 @@ const NavBar: React.FC = () => {
       <div className="navbar sticky top-0 z-10 bg-base-100 px-4 ">
         <div className="navbar-start">
           <label className="btn btn-square btn-ghost swap swap-rotate">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              onClick={() => {
+                toggleSidebar();
+                console.log("CLick");
+              }}
+            />
             <svg
               className="swap-off fill-current"
               xmlns="http://www.w3.org/2000/svg"
