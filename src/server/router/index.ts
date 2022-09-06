@@ -1,11 +1,10 @@
 // src/server/router/index.ts
-import { createRouter } from "./context";
 import superjson from "superjson";
+import { createRouter } from "./context";
 
+import { commentRouter } from "./comments";
 import { postRouter } from "./posts";
 import { userRouter } from "./users";
-import { setTimeout } from "timers/promises";
-import { commentRouter } from "./comments";
 
 export const appRouter = createRouter()
   .transformer(superjson)

@@ -105,6 +105,7 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
 
   useEffect(() => {
     editor?.commands.setContent(content || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
   return (

@@ -1,5 +1,4 @@
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
 import { Footer } from "./Footer";
 interface LayoutProps {
   children: React.ReactNode;
