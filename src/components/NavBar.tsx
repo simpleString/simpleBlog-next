@@ -2,7 +2,6 @@ import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useStore } from "zustand";
 import { useScrollState, useSidebarState } from "../store";
 import { trpc } from "../utils/trpc";
 
@@ -15,6 +14,10 @@ const NavBar: React.FC = () => {
   const [searchMenuOpened, setSearchMenuOpened] = useState(false);
 
   const toggleSidebar = useSidebarState((state) => state.toggle);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    useSidebarState((state) => state.sidebarOpen)
+  );
 
   useEffect(() => {
     if (!themeMenuOpened) {
@@ -34,12 +37,16 @@ const NavBar: React.FC = () => {
     <>
       <div className="navbar sticky top-0 z-10 bg-base-100 px-4 ">
         <div className="navbar-start">
-          <label className="btn btn-square btn-ghost swap swap-rotate">
-            <input
-              type="checkbox"
+          <label
+            className={` "btn btn-square btn-ghost swap swap-rotate" + ${
+              isSidebarOpen ? " swap-active" : ""
+            }
+            `}
+          >
+            <button
               onClick={() => {
+                setIsSidebarOpen(!isSidebarOpen);
                 toggleSidebar();
-                console.log("CLick");
               }}
             />
             <svg
