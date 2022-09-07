@@ -113,7 +113,7 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
       <div
         className={`${
           error.field ? "border-red-500 " : "border-black "
-        } " max-w-3xl mx-auto border-2 "  
+        } " border-2 "  
         `}
       >
         {error.field ? (

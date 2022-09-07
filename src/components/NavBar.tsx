@@ -1,23 +1,25 @@
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useScrollState, useSidebarState } from "../store";
 import { trpc } from "../utils/trpc";
 
 const NavBar: React.FC = () => {
   const me = trpc.useQuery(["user.me"]);
+
+  const [searchValue, setSearchValue] = useState("");
+
   const resetScroll = useScrollState((state) => state.reset);
   const [themeMenuOpened, setThemeMenuOpened] = useState(false);
   const themeMenu = useRef<HTMLDivElement>(null);
   const themeMenuButton = useRef<HTMLLabelElement>(null);
+
   const [searchMenuOpened, setSearchMenuOpened] = useState(false);
 
   const toggleSidebar = useSidebarState((state) => state.toggle);
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(
-    useSidebarState((state) => state.sidebarOpen)
-  );
+  const isSidebarOpen = useSidebarState((state) => state.sidebarOpen);
 
   useEffect(() => {
     if (!themeMenuOpened) {
@@ -33,9 +35,13 @@ const NavBar: React.FC = () => {
     }
   }, [themeMenuOpened]);
 
+  const onChagneSearchValue = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
+
   return (
     <>
-      <div className="navbar fixed top-0 z-10 bg-base-100 px-4 ">
+      <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur">
         <div className="navbar-start">
           <label
             className={` "btn btn-square btn-ghost swap swap-rotate" + ${
@@ -45,7 +51,6 @@ const NavBar: React.FC = () => {
           >
             <button
               onClick={() => {
-                setIsSidebarOpen(!isSidebarOpen);
                 toggleSidebar();
               }}
             />
@@ -78,13 +83,46 @@ const NavBar: React.FC = () => {
             </a>
           </NextLink>
         </div>
-        <div className="hidden md:flex md:navbar-center md:gap-10 ">
-          <div className="form-control">
+        <div className="hidden md:flex md:navbar-center md:gap-10 max-w-lg w-full">
+          <div className="w-full relative">
             <input
               type="text"
               placeholder="Search..."
-              className="input input-bordered"
+              className=" input input-bordered input-primary w-full "
+              onFocus={() => setSearchMenuOpened(true)}
+              // onBlur={() => setSearchMenuOpened(false)}
+              value={searchValue}
+              onChange={onChagneSearchValue}
             />
+            <ul
+              style={{ display: searchMenuOpened ? "block" : "none" }}
+              className="none md:block absolute mt-3 p-2 shadow menu dropdown-content bg-base-100 w-full"
+            >
+              <li>
+                <a
+                  onClick={() => {
+                    setSearchMenuOpened(false);
+                    console.log("Click to search");
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  Go to result
+                </a>
+              </li>
+            </ul>
           </div>
           <NextLink href="/create-post">
             <a className="btn btn-ghost normal-case text-xl">Create post</a>
@@ -114,7 +152,7 @@ const NavBar: React.FC = () => {
               </svg>
             </a>
           </div>
-          {!me.isLoading ? (
+          {me.data ? (
             <div ref={themeMenu} className="dropdown dropdown-end">
               <label
                 ref={themeMenuButton}
@@ -206,6 +244,7 @@ const NavBar: React.FC = () => {
               type="text"
               placeholder="Search..."
               className="input input-bordered"
+              onChange={onChagneSearchValue}
             />
           </div>
         </div>

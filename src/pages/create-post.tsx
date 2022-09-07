@@ -19,20 +19,18 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
 
   return (
-    <div className="container mx-auto mt-10 h-screen">
-      <Tiptap
-        content={content}
-        setContent={setContent}
-        onSave={async (data) => {
-          await createPost.mutateAsync({
-            img: data.img,
-            text: JSON.stringify(content) || data.title,
-            title: data.title,
-          });
-          router.push("/");
-        }}
-      />
-    </div>
+    <Tiptap
+      content={content}
+      setContent={setContent}
+      onSave={async (data) => {
+        await createPost.mutateAsync({
+          img: data.img,
+          text: JSON.stringify(content) || data.title,
+          title: data.title,
+        });
+        router.push("/");
+      }}
+    />
   );
 };
 

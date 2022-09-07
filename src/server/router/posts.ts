@@ -14,6 +14,20 @@ export const postRouter = createRouter()
       });
     },
   })
+  .query("search", {
+    input: z.object({
+      query: z.string(),
+    }),
+    resolve({ ctx, input }) {
+      let userId: undefined | string;
+      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
+      return ctx.prisma.post.findMany({
+        include: { user: true, likes: { where: { userId } }, tag: true },
+        where: { title: { contains: input.query } },
+        orderBy: { createdAt: "desc" },
+      });
+    },
+  })
   .query("post", {
     input: z.object({
       postId: z.string().cuid(),

@@ -29,21 +29,19 @@ const UpdatePost: NextPageWithLayout<React.FC> = () => {
   }, [post?.data]);
 
   return (
-    <div className="container mx-auto mt-10 h-screen">
-      <Tiptap
-        content={content}
-        setContent={setContent}
-        onSave={async (data) => {
-          await updatePost.mutateAsync({
-            id: post.data?.id || "",
-            img: data.img,
-            text: JSON.stringify(content) || data.title,
-            title: data.title,
-          });
-          router.push("/");
-        }}
-      />
-    </div>
+    <Tiptap
+      content={content}
+      setContent={setContent}
+      onSave={async (data) => {
+        await updatePost.mutateAsync({
+          id: post.data?.id || "",
+          img: data.img,
+          text: JSON.stringify(content) || data.title,
+          title: data.title,
+        });
+        router.push("/");
+      }}
+    />
   );
 };
 

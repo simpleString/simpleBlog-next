@@ -1,25 +1,33 @@
 import { useSidebarState } from "../store";
 
 const Sidebar: React.FC = () => {
-  const isSidebarOpen = useSidebarState((state) => state.sidebarOpen);
+  const toggleSidebar = useSidebarState((state) => state.toggle);
+  const sidebarOpenStatus = useSidebarState((state) => state.sidebarOpen);
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(
+  //   useSidebarState((state) => state.sidebarOpen)
+  // );
 
   // TODO: Make open sidebar animation
   return (
     <>
       <div
-        style={{ display: isSidebarOpen ? "block" : "none" }}
-        className="z-50 relative top-0 h-screen  flex-shrink-0  md:z-0 "
+        style={{ display: sidebarOpenStatus ? "block" : "none" }}
+        className="z-50 relative h-screen md:z-0 "
       >
-        <div className="fixed top-0 h-full overflow-y-auto overflow-x-hidden max-w-[200px] w-full">
-          <div className="md:hidden">
-            <label className="btn btn-square btn-ghost swap swap-rotate">
-              <input type="checkbox" />
-              {/* <button
-            // onClick={() => {
-            //   setIsSidebarOpen(!isSidebarOpen);
-            //   toggleSidebar();
-            // }}
-            /> */}
+        <div className="fixed top-0 h-full bg-base-100 overflow-y-auto overflow-x-hidden w-9/12 md:max-w-max md:w-full">
+          <div className="md:hidden bg-base-100 fixed z-50 w-9/12">
+            <label
+              className={` "btn btn-square btn-ghost swap swap-rotate" + ${
+                sidebarOpenStatus ? " swap-active" : ""
+              }
+            `}
+            >
+              <button
+                onClick={() => {
+                  // setIsSidebarOpen(!isSidebarOpen);
+                  toggleSidebar();
+                }}
+              />
               <svg
                 className="swap-off fill-current"
                 xmlns="http://www.w3.org/2000/svg"
@@ -41,12 +49,12 @@ const Sidebar: React.FC = () => {
               </svg>
             </label>
           </div>
-          <ul className="menu p-4  bg-base-100 text-base-content ">
-            {/* {Array.apply(null, Array(30)).map((_, i) => (
+          <ul className="menu p-4 bg-base-100 text-base-content mt-4">
+            {Array.apply(null, Array(30)).map((_, i) => (
               <li key={i}>
                 <a>Value {i}</a>
               </li>
-            ))} */}
+            ))}
             <li>
               <a>Sidebar Item 1</a>
             </li>
@@ -58,8 +66,8 @@ const Sidebar: React.FC = () => {
       </div>
       <div
         className={`${
-          isSidebarOpen &&
-          "absolute top-0 left-0 w-screen h-screen bg-[rgb(0,0,0,0.6)]"
+          sidebarOpenStatus &&
+          "fixed top-0 left-0 w-screen h-screen bg-[rgb(0,0,0,0.6)] z-20 visible"
         }  md:hidden`}
       ></div>
     </>

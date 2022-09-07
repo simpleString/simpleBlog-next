@@ -58,7 +58,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
   };
 
   return (
-    <div className="w-full md:w-1/3 mx-auto mt-8 shadow bg-base-100">
+    <div className="  shadow bg-base-100">
       {!me.isLoading && (
         <form onSubmit={uploadImage}>
           <div className="">

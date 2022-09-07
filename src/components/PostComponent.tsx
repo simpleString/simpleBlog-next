@@ -39,7 +39,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
   };
 
   return (
-    <div className="flex flex-col  bg-yellow-50 border-2 border-black w-screen max-w-3xl  my-8">
+    <div className="flex flex-col bg-yellow-50 border-2 border-black mb-8">
       <div className="flex p-4">
         <div className="mr-6">
           <Image
