@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useScrollState } from "../store";
 import { trpc } from "../utils/trpc";
 
@@ -38,6 +38,13 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
     return true;
   };
 
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    setFormattedDate(post.createdAt.toLocaleDateString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="flex flex-col bg-yellow-50 border-2 border-black mb-8">
       <div className="flex p-4">
@@ -51,7 +58,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
           />
         </div>
         <div>{post.user.name}</div>
-        <div className="ml-auto">{post.createdAt.toLocaleDateString()}</div>
+        <div className="ml-auto">{formattedDate}</div>
       </div>
 
       <div>

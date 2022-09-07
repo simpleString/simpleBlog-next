@@ -2,7 +2,7 @@ import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
 import { Comment, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
@@ -78,6 +78,13 @@ const CommentRow: React.FC<CommentRowProps> = ({ comment }) => {
     comment.childrenComments ? true : false
   );
 
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    setFormattedDate(comment.createdAt.toLocaleDateString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <>
       <div className="flex items-center">
@@ -92,7 +99,7 @@ const CommentRow: React.FC<CommentRowProps> = ({ comment }) => {
         </div>
         <div>
           <div>{comment.user.name}</div>
-          <div>{comment.createdAt.toLocaleTimeString()}</div>
+          <div>{formattedDate}</div>
         </div>
         {comment.userId === session.data?.user?.id ? (
           <div
