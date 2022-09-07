@@ -14,10 +14,10 @@ const Sidebar: React.FC = () => {
         style={{ display: sidebarOpenStatus ? "block" : "none" }}
         className="z-50 relative h-screen md:z-0 "
       >
-        <div className="fixed top-0 h-full bg-base-100 overflow-y-auto overflow-x-hidden w-9/12 md:max-w-max md:w-full">
-          <div className="md:hidden bg-base-100 fixed z-50 w-9/12">
+        <div className="fixed top-0 h-full bg-base-100 overflow-y-auto overflow-x-hidden w-9/12 md:max-w-max md:mt-[64px]">
+          <div className="flex items-center bg-base-100 fixed z-50 w-9/12 h-16 md:hidden">
             <label
-              className={` "btn btn-square btn-ghost swap swap-rotate" + ${
+              className={` "relative left-3 btn btn-square btn-ghost swap swap-rotate" + ${
                 sidebarOpenStatus ? " swap-active" : ""
               }
             `}
@@ -49,7 +49,7 @@ const Sidebar: React.FC = () => {
               </svg>
             </label>
           </div>
-          <ul className="menu p-4 bg-base-100 text-base-content mt-4">
+          <ul className="menu p-4 bg-base-100 text-base-content">
             {Array.apply(null, Array(30)).map((_, i) => (
               <li key={i}>
                 <a>Value {i}</a>
@@ -65,6 +65,7 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
       <div
+        onClick={() => toggleSidebar()}
         className={`${
           sidebarOpenStatus &&
           "fixed top-0 left-0 w-screen h-screen bg-[rgb(0,0,0,0.6)] z-20 visible"

@@ -1,8 +1,9 @@
 import * as trpc from "@trpc/server";
 import { z } from "zod";
+import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
-export const commentRouter = createProtectedRouter()
+export const commentRouter = createRouter()
   .query("getCommentByPostId", {
     input: z.object({ postId: z.string().cuid() }),
     resolve({ ctx, input }) {
@@ -24,64 +25,68 @@ export const commentRouter = createProtectedRouter()
       });
     },
   })
-  .mutation("createComment", {
-    input: z.object({
-      text: z.string().min(1),
-      postId: z.string().cuid(),
-      mainCommentId: z.string().cuid().optional(),
-    }),
-    async resolve({ input, ctx }) {
-      const post = await ctx.prisma.post.update({
-        where: { id: input.postId },
-        data: {
-          comments: {
-            create: {
-              text: input.text,
-              mainCommentId: input.mainCommentId,
-              userId: ctx.session.user.id,
+  .merge(
+    "",
+    createProtectedRouter()
+      .mutation("createComment", {
+        input: z.object({
+          text: z.string().min(1),
+          postId: z.string().cuid(),
+          mainCommentId: z.string().cuid().optional(),
+        }),
+        async resolve({ input, ctx }) {
+          const post = await ctx.prisma.post.update({
+            where: { id: input.postId },
+            data: {
+              comments: {
+                create: {
+                  text: input.text,
+                  mainCommentId: input.mainCommentId,
+                  userId: ctx.session.user.id,
+                },
+              },
+              commentsCount: { increment: 1 },
             },
-          },
-          commentsCount: { increment: 1 },
-        },
-      });
+          });
 
-      if (input.mainCommentId) {
-        await ctx.prisma.comment.update({
-          data: {
-            childrenCount: { increment: 1 },
-          },
-          where: { id: input.mainCommentId },
-        });
-      }
+          if (input.mainCommentId) {
+            await ctx.prisma.comment.update({
+              data: {
+                childrenCount: { increment: 1 },
+              },
+              where: { id: input.mainCommentId },
+            });
+          }
 
-      return post;
-    },
-  })
-  .mutation("updateComment", {
-    input: z.object({
-      id: z.string().cuid(),
-      text: z.string().min(1),
-      postId: z.string().cuid(),
-    }),
-    async resolve({ input, ctx }) {
-      const comment = await ctx.prisma.comment.findFirst({
-        where: {
-          userId: ctx.session.user.id,
-          id: input.id,
+          return post;
         },
-      });
+      })
+      .mutation("updateComment", {
+        input: z.object({
+          id: z.string().cuid(),
+          text: z.string().min(1),
+          postId: z.string().cuid(),
+        }),
+        async resolve({ input, ctx }) {
+          const comment = await ctx.prisma.comment.findFirst({
+            where: {
+              userId: ctx.session.user.id,
+              id: input.id,
+            },
+          });
 
-      if (!comment) {
-        throw new trpc.TRPCError({ code: "FORBIDDEN" });
-      }
+          if (!comment) {
+            throw new trpc.TRPCError({ code: "FORBIDDEN" });
+          }
 
-      return ctx.prisma.comment.update({
-        where: {
-          id: input.id,
+          return ctx.prisma.comment.update({
+            where: {
+              id: input.id,
+            },
+            data: {
+              text: input.text,
+            },
+          });
         },
-        data: {
-          text: input.text,
-        },
-      });
-    },
-  });
+      })
+  );
