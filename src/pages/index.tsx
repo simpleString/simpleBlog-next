@@ -23,7 +23,7 @@ const Home: NextPageWithLayout<React.FC> = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="container mx-auto flex flex-col items-center justify-center min-h-screen p-4">
+      <main className="mx-auto flex flex-col items-center justify-center min-h-screen p-4">
         {posts.isLoading ? (
           <LoadingSpinner />
         ) : (

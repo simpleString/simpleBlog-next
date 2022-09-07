@@ -6,7 +6,13 @@ import { NextPageWithLayout } from "./_app";
 import { supabase } from "../utils/supabaseClient";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
+  const utils = trpc.useContext();
   const me = trpc.useQuery(["user.me"]);
+  const updateUserProfile = trpc.useMutation(["user.updateUserPhoto"], {
+    onSuccess: () => {
+      utils.invalidateQueries(["user.me"]);
+    },
+  });
 
   const [file, setFile] = useState<File>();
 
@@ -39,10 +45,16 @@ const Profile: NextPageWithLayout<React.FC> = () => {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError, data } = await supabase.storage
       .from("photos")
       .upload(fileName, file);
     if (uploadError) throw uploadError;
+
+    const { data: publicData } = supabase.storage
+      .from("photos")
+      .getPublicUrl(data.path);
+
+    await updateUserProfile.mutateAsync({ imgUrl: publicData.publicUrl });
   };
 
   return (

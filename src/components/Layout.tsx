@@ -18,7 +18,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <NavBarWithNoSSR />
       <div className="flex">
         <SidebarWithNoSSR />
-        {children}
+        <div className="flex-1">{children}</div>
       </div>
       <Footer />
     </>
