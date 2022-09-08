@@ -25,5 +25,9 @@ export const userRouter = createRouter()
           select: null,
         });
       },
+    }).mutation('updateUser', {
+      input: z.object({name: z.string().min(1)}), resolve({ctx, input}) {
+        return ctx.prisma.user.update({where: {id: ctx.session.user.id}, data: {name: input.name}})
+      }
     })
   );

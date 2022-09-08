@@ -23,13 +23,13 @@ const Home: NextPageWithLayout<React.FC> = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="md:p-4">
+      <div className="md:p-4">
         {posts.isLoading ? (
           <LoadingSpinner />
         ) : (
           posts.data?.map((post) => <PostComponent key={post.id} post={post} />)
         )}
-      </main>
+      </div>
     </>
   );
 };

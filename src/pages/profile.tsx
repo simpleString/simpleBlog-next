@@ -4,44 +4,40 @@ import { Layout } from "../components/Layout";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 import { supabase } from "../utils/supabaseClient";
+import ArrowUpTrayIcon from "@heroicons/react/24/solid/ArrowUpTrayIcon";
+import { useSession } from "next-auth/react";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
+  useSession({ required: true });
   const utils = trpc.useContext();
-  const me = trpc.useQuery(["user.me"]);
+  const me = trpc.useQuery(["user.me"], { enabled: false });
+  const updateUserData = trpc.useMutation(["user.updateUser"], {
+    onSuccess: () => {
+      utils.refetchQueries(["user.me"]);
+    },
+  });
   const updateUserProfile = trpc.useMutation(["user.updateUserPhoto"], {
     onSuccess: () => {
-      utils.invalidateQueries(["user.me"]);
+      utils.refetchQueries(["user.me"]);
     },
   });
 
-  const [file, setFile] = useState<File>();
+  const [name, setName] = useState<null | string | undefined>("");
 
-  // useEffect(() => {
-  //   const result = async () => {
-  //     const { data, error } = await supabase.storage
-  //       .from("public/photos")
-  //       .download("image.jpeg");
-  //     if (error) {
-  //       throw error;
-  //     }
+  useEffect(() => {
+    //TODO: Optimize it. It's download twice and in every page entering
+    const init = async () => {
+      await me.refetch();
+      console.log("name is ", me.data);
+      setName(me.data?.name);
+    };
+    init();
+  }, [me.isLoading]);
 
-  //     console.log("bucketsList: ", data);
-
-  //     const url = URL.createObjectURL(data);
-  //     setDownloadedImage(url);
-  //     console.log("downloadedImage: ", url);
-  //   };
-  //   result();
-  // }, []);
-
-  const onFileChange = (e: FormEvent<HTMLInputElement>) => {
-    setFile(e.currentTarget.files?.[0]);
-  };
-
-  const uploadImage = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onFileChange = async (e: FormEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
     if (!file) return;
-
     const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random()}.${fileExt}`;
 
@@ -57,34 +53,53 @@ const Profile: NextPageWithLayout<React.FC> = () => {
     await updateUserProfile.mutateAsync({ imgUrl: publicData.publicUrl });
   };
 
+  if (me.isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <div className="  shadow bg-base-100">
       {!me.isLoading && (
-        <form onSubmit={uploadImage}>
-          <div className="">
-            <button type="submit">Upload</button>
-            <div className="avatar">
-              <div className="w-32 rounded">
-                <Image
-                  src={me.data?.image ?? "/user-placeholder.jpg"}
-                  alt="Not image"
-                  layout="fill"
-                />
-                <input
-                  className="relative"
-                  onChange={onFileChange}
-                  type="file"
-                  accept="image/png, image/jpeg"
-                />
-              </div>
+        <div className="indicator">
+          <div className="avatar">
+            <div className="w-32 rounded-full">
+              <Image
+                src={me.data?.image ?? "/user-placeholder.jpg"}
+                alt="Not image"
+                layout="fill"
+              />
             </div>
           </div>
-        </form>
+          <label className="bottom-6 right-6 indicator-item indicator-bottom badge cursor-pointer badge-secondary">
+            <ArrowUpTrayIcon className="w-6 h-6" />
+            <input
+              className="hidden"
+              onChange={onFileChange}
+              type="file"
+              accept="image/png, image/jpeg"
+            />
+          </label>
+        </div>
       )}
-      <form className="form-control p-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (name) {
+            updateUserData.mutateAsync({ name });
+          }
+        }}
+        className="form-control p-4"
+      >
         <label className="label">Name</label>
-        <input placeholder="Name" className="input" />
-        <button className="btn">Save</button>
+        <input
+          value={name || ""}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          className="input mb-4"
+        />
+        <button type="submit" className="btn mb-4">
+          Save
+        </button>
       </form>
     </div>
   );
