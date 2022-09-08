@@ -36,7 +36,8 @@ model Post {
   likesValue    Int       @default(0)
   commentsCount Int       @default(0)
   comments      Comment[]
-  tag           Tag[]
+  tagId         String?
+  tag           Tag?      @relation(fields: [tagId], references: [id])
 }
 
 model Comment {

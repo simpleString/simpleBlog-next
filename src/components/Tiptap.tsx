@@ -13,6 +13,10 @@ type TiptapProps = {
   content: Readonly<JSONContent | undefined>;
   setContent: Dispatch<SetStateAction<JSONContent | undefined>>;
   onSave: (titleAndImg: { title: string; img: string }) => void;
+  tags: {
+    id: string;
+    title: string;
+  }[];
 };
 
 const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
