@@ -1,3 +1,4 @@
+/* eslint-disable prefer-spread */
 import { useSidebarState } from "../store";
 
 const Sidebar: React.FC = () => {

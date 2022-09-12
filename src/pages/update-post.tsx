@@ -32,6 +32,7 @@ const UpdatePost: NextPageWithLayout<React.FC> = () => {
     <Tiptap
       content={content}
       setContent={setContent}
+      tags={[]}
       onSave={async (data) => {
         await updatePost.mutateAsync({
           id: post.data?.id || "",

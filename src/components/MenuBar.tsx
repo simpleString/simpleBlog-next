@@ -1,5 +1,20 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { Modal } from "./Modal";
+// import fa from "@fortawesome/free-regular-svg-icons/faAngry";
+import {
+  faBold,
+  faItalic,
+  faStrikethrough,
+  faCode,
+  faList,
+  faHeading,
+  faListOl,
+  faQuoteRight,
+  faImage,
+} from "@fortawesome/free-solid-svg-icons";
+
+import CodeBracketSquareIcon from "@heroicons/react/24/solid/CodeBracketSquareIcon";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AddImage = ({ editor }: { editor: any }) => {
@@ -42,178 +57,120 @@ export const MenuBar = ({ editor }: { editor: any }) => {
 
   return (
     <>
-      <AddImage editor={editor} />
+      {/* <AddImage editor={editor} /> */}
 
-      <div className="p-4 pt-0">
-        <button
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("bold") ? "text-white bg-black" : ""
-          }`}
-        >
-          bold
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("italic") ? "text-white bg-black" : ""
-          }`}
-        >
-          italic
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("strike") ? "text-white bg-black" : ""
-          }`}
-        >
-          strike
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("code") ? "text-white bg-black" : ""
-          }`}
-        >
-          code
-        </button>
-        <button
-          className="border border-black px-1 line rounded-md m-1 cursor-default"
-          onClick={() => editor.chain().focus().unsetAllMarks().run()}
-        >
-          clear marks
-        </button>
-        <button
-          className="border border-black px-1 line rounded-md m-1 cursor-default"
-          onClick={() => editor.chain().focus().clearNodes().run()}
-        >
-          clear nodes
-        </button>
-        <button
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("paragraph") ? "text-white bg-black" : ""
-          }`}
-        >
-          paragraph
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 1 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 1 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h1
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 2 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 2 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h2
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 3 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 3 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h3
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 4 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 4 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h4
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 5 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 5 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h5
-        </button>
-        <button
-          onClick={() =>
-            editor.chain().focus().toggleHeading({ level: 6 }).run()
-          }
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("heading", { level: 6 })
-              ? "text-white bg-black"
-              : ""
-          }`}
-        >
-          h6
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("bulletList") ? "text-white bg-black" : ""
-          }`}
-        >
-          bullet list
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("orderedList") ? "text-white bg-black" : ""
-          }`}
-        >
-          ordered list
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("codeBlock") ? "text-white bg-black" : ""
-          }`}
-        >
-          code block
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`border border-black px-1 line rounded-md m-1 cursor-default ${
-            editor.isActive("blockquote") ? "text-white bg-black" : ""
-          }`}
-        >
-          blockquote
-        </button>
-        <button
+      <div className="flex p-2 shadow bg-primary">
+        <div className="tooltip" data-tip="Bold">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              className="ri-bold ri-xl"
+              onClick={() => editor.chain().focus().toggleBold().run()}
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Italic">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className="ri-italic ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Strikethrough">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+              className="ri-strikethrough ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Inline Code">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleCode().run()}
+              className="ri-code-s-slash-line ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="divider divider-horizontal mx-1 py-1"></div>
+
+        <div className="tooltip" data-tip="Heading">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+              className="ri-heading ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Bulleted List">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className="ri-list-unordered ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Numbered List">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className="ri-list-ordered ri-xl"
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Code block">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              className="ri-code-box-line ri-xl"
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            />
+          </button>
+        </div>
+
+        <div className="tooltip" data-tip="Quote Block">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              className="ri-double-quotes-l ri-xl"
+            />
+          </button>
+        </div>
+
+        {/* <button
           className="border border-black px-1 line rounded-md m-1 cursor-default"
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
         >
           horizontal rule
-        </button>
-        <button
-          className="border border-black px-1 line rounded-md m-1 cursor-default"
-          onClick={() => editor.chain().focus().setHardBreak().run()}
-        >
-          hard break
-        </button>
-        <button
+        </button> */}
+
+        <div className="tooltip" data-tip="Hard Break">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i
+              className="ri-text-wrap ri-xl"
+              // className="border border-black px-1 line rounded-md m-1 cursor-default"
+              onClick={() => editor.chain().focus().setHardBreak().run()}
+            />
+          </button>
+        </div>
+
+        <div className="divider divider-horizontal mx-1 py-1"></div>
+
+        <div className="tooltip" data-tip="Add Image">
+          <button className="btn btn-square btn-ghost btn-sm font-normal">
+            <i className="ri-image-add-line ri-xl" />
+          </button>
+        </div>
+
+        {/* <button
           className="border border-black px-1 line rounded-md m-1 cursor-default"
           onClick={() => editor.chain().focus().undo().run()}
         >
@@ -224,7 +181,7 @@ export const MenuBar = ({ editor }: { editor: any }) => {
           onClick={() => editor.chain().focus().redo().run()}
         >
           redo
-        </button>
+        </button> */}
       </div>
     </>
   );

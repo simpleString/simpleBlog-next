@@ -15,29 +15,38 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
-model Tag {
-  id        String   @id @default(cuid())
-  title     String   @unique
-  post      Post[]
+model Community {
+  id          String @id @default(cuid())
+  title       String
+  description String
+  img         String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  userCount Int
+
+  users User[]
+  post  Post[]
 }
 
 model Post {
-  id            String    @id @default(cuid())
-  title         String
-  text          String    @db.Text
-  img           String    @db.Text
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id     String @id @default(cuid())
+  title  String
+  text   String @db.Text
+  img    String
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   likes         Like[]
-  likesValue    Int       @default(0)
-  commentsCount Int       @default(0)
+  likesValue    Int        @default(0)
+  commentsCount Int        @default(0)
   comments      Comment[]
-  tagId         String?
-  tag           Tag?      @relation(fields: [tagId], references: [id])
+  communityId   String?
+  community     Community? @relation(fields: [communityId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Comment {
@@ -100,11 +109,13 @@ model User {
   email         String?   @unique
   emailVerified DateTime?
   image         String?
-  accounts      Account[]
-  sessions      Session[]
-  posts         Post[]
-  likes         Like[]
-  comments      Comment[]
+
+  accounts    Account[]
+  sessions    Session[]
+  posts       Post[]
+  likes       Like[]
+  comments    Comment[]
+  communities Community[]
 }
 
 model VerificationToken {

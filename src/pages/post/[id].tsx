@@ -72,8 +72,8 @@ const Post: NextPageWithLayout<React.FC> = () => {
         )}
       </div>
 
-      <InteractivePanel post={post.data} />
-      <CommentSection post={post.data} />
+      {/* <InteractivePanel post={post.data} /> */}
+      {/* <CommentSection post={post.data} /> */}
     </div>
   );
 };

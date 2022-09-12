@@ -42,7 +42,7 @@ const NavBar: React.FC = () => {
 
   return (
     <>
-      <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur">
+      <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur shadow">
         <div className="navbar-start">
           <label
             className={` "btn btn-square btn-ghost swap swap-rotate" + ${

@@ -22,6 +22,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     <Tiptap
       content={content}
       setContent={setContent}
+      tags={[]}
       onSave={async (data) => {
         await createPost.mutateAsync({
           img: data.img,

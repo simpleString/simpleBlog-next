@@ -8,10 +8,13 @@ import StarterKit from "@tiptap/starter-kit";
 import NextLink from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { MenuBar } from "./MenuBar";
+import Select from "react-select";
 
 type TiptapProps = {
-  content: Readonly<JSONContent | undefined>;
-  setContent: Dispatch<SetStateAction<JSONContent | undefined>>;
+  // content: Readonly<JSONContent | undefined>;
+  // setContent: Dispatch<SetStateAction<JSONContent | undefined>>;
+  title: string;
+  text: JSONContent;
   onSave: (titleAndImg: { title: string; img: string }) => void;
   tags: {
     id: string;
@@ -19,30 +22,13 @@ type TiptapProps = {
   }[];
 };
 
-const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
+const Tiptap: React.FC<TiptapProps> = ({ text, title, onSave }) => {
   const [error, setError] = useState({ message: "", field: "" });
+  const [content, setContent] = useState(text);
+  const [postTitle, setPostTitle] = useState(title);
 
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        document: false,
-      }),
-      Highlight,
-      Typography,
-      Document.extend({ content: "heading block*" }),
-      Image,
-      Placeholder.configure({
-        emptyNodeClass:
-          "before:content-[attr(data-placeholder)] before:float-left before:text-gray-400 before:pointer-events-none before:h-0 ",
-        placeholder: ({ node }) => {
-          if (node.type.name === "heading") {
-            return "What’s the title?";
-          }
-
-          return "Can you add some further context?";
-        },
-      }),
-    ],
+    extensions: [StarterKit, Highlight, Typography, Document, Image],
     onUpdate({ editor }) {
       const _title = content?.content?.[0]?.content?.[0]?.text;
       if (_title && _title.length > 4) {
@@ -60,85 +46,34 @@ const Tiptap: React.FC<TiptapProps> = ({ content, setContent, onSave }) => {
     },
   });
 
-  const savePos = () => {
-    const titleAndImg = {
-      title: "",
-      img: "",
-    };
-
-    if (typeof content === "undefined") {
-      return null;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (content.content![0]?.content) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      titleAndImg.title = content.content![0]!.content![0]!.text!;
-    }
-
-    let notUpdated = true;
-
-    content.content?.forEach((item) => {
-      if (notUpdated && item.type === "image") {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        if (typeof item.attrs !== "undefined") {
-          titleAndImg.img = item.attrs.src;
-          notUpdated = false;
-        }
-      }
-    });
-
-    if (titleAndImg.title.length < 5) {
-      setError({
-        field: "Title",
-        message: "Title mast be not less 5 simbols.",
-      });
-    }
-
-    if (!titleAndImg.img) {
-      setError({
-        field: "Image",
-        message: "Post must have at least one image.",
-      });
-    }
-
-    if (titleAndImg.img && titleAndImg.title) {
-      onSave(titleAndImg);
-    }
-  };
-
   useEffect(() => {
-    editor?.commands.setContent(content || "");
+    if (editor) {
+      try {
+        editor.commands?.setContent(content || "");
+      } catch (error) {}
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
+  }, [editor?.commands]);
 
   return (
     <>
-      <div
-        className={`${
-          error.field ? "border-red-500 " : "border-black "
-        } " border-2 "  
-        `}
-      >
-        {error.field ? (
-          <div className="text-red-600 text-xl">
-            {error.field}: {error.message}
-          </div>
-        ) : null}
+      <div className="mt-7 shadow">
+        <div className="w-1/3">
+          <Select placeholder="Choose community" />
+        </div>
+        <div>
+          <input
+            value={postTitle}
+            onChange={(e) => setPostTitle(e.target.value)}
+          />
+        </div>
         <MenuBar editor={editor} />
         <EditorContent editor={editor} />
       </div>
-      <div className="max-w-3xl mx-auto py-8">
-        <button
-          className="mr-2 px-3 border rounded border-black font-semibold text-lg hover:bg-black hover:text-white"
-          onClick={() => savePos()}
-        >
-          Save
-        </button>
+      <div className="max-w-3xl space-x-2">
+        <button className="btn btn-primary">Save</button>
         <NextLink href="/">
-          <button className="mr-2 px-3 border rounded border-black font-semibold text-lg bg-yellow-300 hover:bg-yellow-500 ">
-            Close
-          </button>
+          <button className="btn btn-ghost">Close</button>
         </NextLink>
       </div>
     </>
