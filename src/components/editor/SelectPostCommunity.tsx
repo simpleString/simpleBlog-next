@@ -1,28 +1,18 @@
-import Image from "next/image";
-import {
-  Dispatch,
-  MouseEvent,
-  MouseEventHandler,
-  SetStateAction,
-  useEffect,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { CommunityProps } from "../../pages/create-post";
 import { trpc } from "../../utils/trpc";
 
-type InputCommunityProps = {
-  community: string;
-  setCommunity: Dispatch<SetStateAction<string>>;
+type SelectPostCommunity = {
+  currentCommunity: CommunityProps | undefined;
+  setCurrentCommunity: Dispatch<SetStateAction<CommunityProps | undefined>>;
 };
 
-type CommunityProps = {
-  img: string;
-  title: string;
-};
-
-const InputCommunity: React.FC = () => {
+const SelectPostCommunity: React.FC<SelectPostCommunity> = ({
+  currentCommunity,
+  setCurrentCommunity,
+}) => {
   const [value, setValue] = useState("");
   const [openSelectMenu, setOpenSelectMenu] = useState(false);
-  const [currentCommunity, setCurrentCommunity] = useState<CommunityProps>();
 
   const userCommunities = trpc.useQuery(["community.communitiesForUser"]);
   const communitiesSearch = trpc.useQuery(
@@ -32,10 +22,14 @@ const InputCommunity: React.FC = () => {
 
   const chooseCommunityOther = (id: string) => {
     setCurrentCommunity(communitiesSearch.data?.find((c) => c.id === id));
+    setValue("");
+    setOpenSelectMenu(!openSelectMenu);
   };
 
   const chooseCommunity = (id: string) => {
     setCurrentCommunity(userCommunities.data?.find((c) => c.id === id));
+    setValue("");
+    setOpenSelectMenu(!openSelectMenu);
   };
 
   useEffect(() => {
@@ -56,7 +50,6 @@ const InputCommunity: React.FC = () => {
         onClick={() => {
           if (openSelectMenu) {
             setValue("");
-            communitiesSearch.remove();
           }
           setOpenSelectMenu(!openSelectMenu);
         }}
@@ -126,4 +119,4 @@ const InputCommunity: React.FC = () => {
   );
 };
 
-export default InputCommunity;
+export default SelectPostCommunity;

@@ -9,12 +9,17 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
-import InputCommunity from "../components/editor/InputCommunity";
+import SelectPostCommunity from "../components/editor/SelectPostCommunity";
 import { MenuBar } from "../components/editor/MenuBar";
 import { Layout } from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
+
+export type CommunityProps = {
+  img: string;
+  title: string;
+};
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
@@ -30,7 +35,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   const [content, setContent] = useState<JSONContent>();
   const [postTitle, setPostTitle] = useState("");
 
-  const [currentCommunity, setCurrentCommunity] = useState();
+  const [currentCommunity, setCurrentCommunity] = useState<CommunityProps>();
 
   const editor = useEditor({
     extensions: [
@@ -52,8 +57,8 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     content,
     editorProps: {
       attributes: {
-        class: "prose prose-sm sm:prose lg:prose-lg focus:outline-none m-5",
-        // "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl m-5 focus:outline-none",
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none pb-4 m-5 min-h-[200px]",
       },
     },
   });
@@ -69,21 +74,33 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
 
   return (
     <>
-      <div className="mt-7 shadow">
+      <div className="mt-7 shadow p-4">
         <div className="w-1/3">
-          <InputCommunity />
+          <SelectPostCommunity
+            currentCommunity={currentCommunity}
+            setCurrentCommunity={setCurrentCommunity}
+          />
         </div>
-        <div>
+        <div className="w-full">
           <input
+            className="input input-bordered w-full my-4"
+            placeholder="Title"
             value={postTitle}
             onChange={(e) => setPostTitle(e.target.value)}
           />
         </div>
-        <MenuBar editor={editor} />
-        <EditorContent editor={editor} />
+        <div className="shadow">
+          <MenuBar editor={editor} />
+          <EditorContent editor={editor} />
+        </div>
       </div>
-      <div className="max-w-3xl space-x-2">
-        <button className="btn btn-primary">Save</button>
+      <div className="max-w-3xl space-x-2 my-4">
+        <button
+          disabled={!postTitle || !currentCommunity}
+          className="btn btn-primary"
+        >
+          Save
+        </button>
         <NextLink href="/">
           <button className="btn btn-ghost">Close</button>
         </NextLink>
