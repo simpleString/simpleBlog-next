@@ -17,14 +17,14 @@ datasource db {
 
 model Community {
   id          String @id @default(cuid())
-  title       String
+  title       String @unique
   description String
   img         String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userCount Int
+  userCount Int @default(1)
 
   users User[]
   post  Post[]

@@ -1,8 +1,4 @@
-import ChatBubbleLeftIcon from "@heroicons/react/24/outline/ChatBubbleLeftIcon";
-import ChevronDownIcon from "@heroicons/react/24/outline/ChevronDownIcon";
-import ChevronUpIcon from "@heroicons/react/24/outline/ChevronUpIcon";
-import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
-import { Comment, Like, Post, Tag, User } from "@prisma/client";
+import { Comment, Like, Post, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import router from "next/router";
@@ -16,7 +12,6 @@ type InteractivePanelProps = {
         comments: (Comment & {
           user: User;
         })[];
-        tag: Tag[];
       })
     | null
     | undefined;
@@ -35,7 +30,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
   return (
     <div className="flex p-4 items-center border-2 border-black ">
       <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
-        <ChatBubbleLeftIcon className="w-6 h-6 mr-2 group-hover:fill-current" />
+        <i className="ri-chat-1-line mr-2 group-hover:fill-current" />
         <span>{post?.commentsCount}</span>
       </div>
       {post?.userId === session.data?.user?.id ? (
@@ -45,12 +40,12 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
         >
           <div className="ml-auto motion-safe:hover:scale-105 duration-500 text-center group cursor-pointer">
             <a>Edit</a>
-            <PencilIcon className="h-6 w-6 ml-2 inline-block" />
+            <i className="ml-2 inline-block ri-pencil-line" />
           </div>
         </NextLink>
       ) : null}
       <div className="ml-auto flex items-center">
-        <ChevronDownIcon
+        <i
           onClick={async () => {
             if (session.status !== "authenticated") {
               router.push(
@@ -71,10 +66,10 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
               ? "text-red-700"
               : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
           }
-        w-6 h-6 cursor-pointer`}
+         cursor-pointer ri-arrow-down-s-line`}
         />
         <span>{post?.likesValue}</span>
-        <ChevronUpIcon
+        <i
           onClick={async () => {
             if (session.status !== "authenticated") {
               router.push(
@@ -95,7 +90,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
               ? "text-green-700"
               : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
           }
-        w-6 h-6 cursor-pointer `}
+        cursor-pointer ri-arrow-up-s-line`}
         />
       </div>
     </div>

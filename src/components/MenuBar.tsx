@@ -1,20 +1,5 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { Modal } from "./Modal";
-// import fa from "@fortawesome/free-regular-svg-icons/faAngry";
-import {
-  faBold,
-  faItalic,
-  faStrikethrough,
-  faCode,
-  faList,
-  faHeading,
-  faListOl,
-  faQuoteRight,
-  faImage,
-} from "@fortawesome/free-solid-svg-icons";
-
-import CodeBracketSquareIcon from "@heroicons/react/24/solid/CodeBracketSquareIcon";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AddImage = ({ editor }: { editor: any }) => {

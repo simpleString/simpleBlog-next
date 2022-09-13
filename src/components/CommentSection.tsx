@@ -1,4 +1,4 @@
-import { Comment, Like, Post, Tag, User } from "@prisma/client";
+import { Comment, Like, Post, User } from "@prisma/client";
 import { useState } from "react";
 import { trpc } from "../utils/trpc";
 import CommentRow from "./CommentRow";
@@ -16,7 +16,6 @@ type CommentSectionProps = {
             user: User;
           })[];
         })[];
-        tag: Tag[];
       })
     | null
     | undefined;

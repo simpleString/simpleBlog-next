@@ -9,7 +9,7 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       return ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId } }, tag: true },
+        include: { user: true, likes: { where: { userId } } },
         orderBy: { createdAt: "desc" },
       });
     },
@@ -22,7 +22,7 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       return ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId } }, tag: true },
+        include: { user: true, likes: { where: { userId } } },
         where: { title: { contains: input.query } },
         orderBy: { createdAt: "desc" },
       });
@@ -44,7 +44,6 @@ export const postRouter = createRouter()
             where: { postId: input.postId, userId },
             take: 1,
           },
-          tag: true,
           comments: {
             include: {
               user: true,

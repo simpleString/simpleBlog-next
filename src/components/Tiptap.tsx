@@ -6,9 +6,9 @@ import Typography from "@tiptap/extension-typography";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import NextLink from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { MenuBar } from "./MenuBar";
+import { useEffect, useState } from "react";
 import Select from "react-select";
+import { MenuBar } from "./MenuBar";
 
 type TiptapProps = {
   // content: Readonly<JSONContent | undefined>;
@@ -23,17 +23,27 @@ type TiptapProps = {
 };
 
 const Tiptap: React.FC<TiptapProps> = ({ text, title, onSave }) => {
-  const [error, setError] = useState({ message: "", field: "" });
   const [content, setContent] = useState(text);
   const [postTitle, setPostTitle] = useState(title);
 
   const editor = useEditor({
-    extensions: [StarterKit, Highlight, Typography, Document, Image],
+    extensions: [
+      StarterKit,
+      Highlight,
+      Typography,
+      Document,
+      Image,
+      Placeholder.configure({
+        emptyEditorClass:
+          "before:content-[attr(data-placeholder)] before:float-left before:text-gray-400 before:pointer-events-none before:h-0 ",
+        placeholder: "Text(optional)",
+      }),
+    ],
     onUpdate({ editor }) {
-      const _title = content?.content?.[0]?.content?.[0]?.text;
-      if (_title && _title.length > 4) {
-        setError({ field: "", message: "" });
-      }
+      // const _title = content?.content?.[0]?.content?.[0]?.text;
+      // if (_title && _title.length > 4) {
+      //   setError({ field: "", message: "" });
+      // }
       const item = editor.getJSON();
       setContent(item);
     },
@@ -53,7 +63,7 @@ const Tiptap: React.FC<TiptapProps> = ({ text, title, onSave }) => {
       } catch (error) {}
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor?.commands]);
+  }, [editor]);
 
   return (
     <>
