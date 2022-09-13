@@ -1,15 +1,17 @@
-import { router } from "@trpc/server";
 import { signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 import NextLink from "next/link";
+import { useRouter } from "next/router";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useScrollState, useSidebarState } from "../store";
 import { trpc } from "../utils/trpc";
 import Dropdown from "./Dropdown";
-import { SearchIcon } from "./Svg";
+import { CloseIcon, MenuIcon, SearchIcon } from "./Svg";
 
 const NavBar: React.FC = () => {
   const me = trpc.useQuery(["user.me"]);
+
+  const router = useRouter();
 
   const [searchValue, setSearchValue] = useState("");
 
@@ -25,8 +27,11 @@ const NavBar: React.FC = () => {
     setSearchValue(e.target.value);
   };
 
+  const delayedCloseMenu = () =>
+    setTimeout(() => setSearchMenuOpened(false), 1000);
+
   return (
-    <>
+    <nav className="relative">
       <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur shadow">
         <div className="navbar-start">
           <label
@@ -40,25 +45,9 @@ const NavBar: React.FC = () => {
                 toggleSidebar();
               }}
             />
-            <svg
-              className="swap-off fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 512 512"
-            >
-              <path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128v42.67H448V128Z" />
-            </svg>
+            <MenuIcon className="swap-off fill-current" />
 
-            <svg
-              className="swap-on fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 512 512"
-            >
-              <polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49" />
-            </svg>
+            <CloseIcon className="swap-on fill-current" />
           </label>
           <NextLink href="/">
             <a
@@ -70,34 +59,47 @@ const NavBar: React.FC = () => {
           </NextLink>
         </div>
         <div className="hidden md:flex md:navbar-center md:gap-10 max-w-lg w-full">
-          <div className="w-full relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              className=" input input-bordered input-primary w-full "
-              onFocus={() => setSearchMenuOpened(true)}
-              // onBlur={() => setSearchMenuOpened(false)}
-              value={searchValue}
-              onChange={onChagneSearchValue}
-            />
-            <ul
-              style={{ display: searchMenuOpened ? "block" : "none" }}
-              className="none md:block absolute mt-3 p-2 shadow menu dropdown-content bg-base-100 w-full"
+          <div
+            className="w-full relative"
+            onFocus={() => setSearchMenuOpened(true)}
+            onBlur={() => delayedCloseMenu()}
+          >
+            <form
+              onSubmit={(e) => {
+                console.log("form submit");
+                e.preventDefault();
+                setSearchMenuOpened(false);
+                router.push(`/post/search/${searchValue}`);
+              }}
             >
-              <li>
-                <NextLink href={`/post/search/${searchValue}`}>
-                  <a
-                    onClick={() => {
-                      setSearchMenuOpened(false);
-                      console.log("Click to search");
-                    }}
-                  >
-                    <SearchIcon />
-                    Go to result
-                  </a>
-                </NextLink>
-              </li>
-            </ul>
+              <input
+                type="text"
+                placeholder="Search..."
+                className=" input input-bordered input-primary w-full "
+                value={searchValue}
+                onChange={onChagneSearchValue}
+                onClick={() => setSearchMenuOpened(true)}
+              />
+
+              <ul
+                style={{ display: searchMenuOpened ? "block" : "none" }}
+                className="none md:block absolute mt-3 p-2 shadow menu dropdown-content bg-base-100 w-full"
+              >
+                <li>
+                  <NextLink href={`/post/search/${searchValue}`}>
+                    <a
+                      onClick={() => {
+                        console.log("Click to search");
+                        setSearchMenuOpened(false);
+                      }}
+                    >
+                      <SearchIcon />
+                      Go to result
+                    </a>
+                  </NextLink>
+                </li>
+              </ul>
+            </form>
           </div>
           <NextLink href="/create-post">
             <a className="btn btn-ghost normal-case text-xl">Create post</a>
@@ -139,13 +141,7 @@ const NavBar: React.FC = () => {
                 <a>Drafts</a>
               </li>
               <li>
-                <a
-                  onClick={() => {
-                    signOut();
-                  }}
-                >
-                  Logout
-                </a>
+                <a onClick={() => signOut()}>Logout</a>
               </li>
             </Dropdown>
           ) : (
@@ -159,18 +155,25 @@ const NavBar: React.FC = () => {
         </div>
       </div>
       {searchMenuOpened && (
-        <div className="md:hidden w-full p-2">
-          <div className="form-control">
+        <div className="md:hidden w-full p-2 fixed bg-base-100 z-50">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearchMenuOpened(false);
+              router.push(`/post/search/${searchValue}`);
+            }}
+            className="form-control"
+          >
             <input
               type="text"
               placeholder="Search..."
               className="input input-bordered"
               onChange={onChagneSearchValue}
             />
-          </div>
+          </form>
         </div>
       )}
-    </>
+    </nav>
   );
 };
 
