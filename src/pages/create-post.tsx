@@ -9,13 +9,12 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
+import InputCommunity from "../components/editor/InputCommunity";
+import { MenuBar } from "../components/editor/MenuBar";
 import { Layout } from "../components/Layout";
-import { MenuBar } from "../components/MenuBar";
+import LoadingSpinner from "../components/LoadingSpinner";
 import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
-import Select from "react-select";
-import NextImage from "next/image";
-import LoadingSpinner from "../components/LoadingSpinner";
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
@@ -27,10 +26,11 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     },
   });
   const router = useRouter();
-  const communities = trpc.useQuery(["user.communities"]);
 
   const [content, setContent] = useState<JSONContent>();
   const [postTitle, setPostTitle] = useState("");
+
+  const [currentCommunity, setCurrentCommunity] = useState();
 
   const editor = useEditor({
     extensions: [
@@ -67,16 +67,12 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor]);
 
-  if (communities.isLoading) {
-    <LoadingSpinner />;
-  }
-
-  console.log(communities.data);
-
   return (
     <>
       <div className="mt-7 shadow">
-        <div className="w-1/3"></div>
+        <div className="w-1/3">
+          <InputCommunity />
+        </div>
         <div>
           <input
             value={postTitle}

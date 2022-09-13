@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import { Layout } from "../components/Layout";
-import Tiptap from "../components/Tiptap";
+import Tiptap from "../components/editor/Tiptap";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 

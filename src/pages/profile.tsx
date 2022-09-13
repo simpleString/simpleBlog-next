@@ -4,9 +4,9 @@ import { Layout } from "../components/Layout";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 import { supabase } from "../utils/supabaseClient";
-import ArrowUpTrayIcon from "@heroicons/react/24/solid/ArrowUpTrayIcon";
 import { useSession } from "next-auth/react";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { UploadIcon } from "../components/Svg";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
@@ -71,7 +71,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
             </div>
           </div>
           <label className="bottom-6 right-6 indicator-item indicator-bottom badge cursor-pointer badge-secondary">
-            <ArrowUpTrayIcon className="w-6 h-6" />
+            <UploadIcon />
             <input
               className="hidden"
               onChange={onFileChange}

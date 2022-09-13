@@ -3,17 +3,24 @@ import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
 export const communityRouter = createRouter()
-  // .query("me", {
-  //   async resolve({ ctx }) {
-  //     if (!ctx.session?.user) {
-  //       return null;
-  //     }
-  //     const user = await ctx.prisma.user.findFirst({
-  //       where: { id: ctx.session.user.id },
-  //     });
-  //     return user;
-  //   },
-  // })
+  .query("search", {
+    input: z.object({
+      title: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const userId = ctx.session?.user?.id;
+
+      const communities = await ctx.prisma.community.findMany({
+        where: {
+          title: { startsWith: input.title },
+          users: { none: { id: userId } },
+        },
+      });
+      console.log(communities);
+
+      return communities;
+    },
+  })
   .merge(
     "",
     createProtectedRouter()
@@ -29,7 +36,7 @@ export const communityRouter = createRouter()
           });
         },
       })
-      .query("communities", {
+      .query("communitiesForUser", {
         resolve({ ctx }) {
           return ctx.prisma.community.findMany({
             where: { users: { some: { id: ctx.session.user.id } } },

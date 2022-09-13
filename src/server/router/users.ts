@@ -36,11 +36,4 @@ export const userRouter = createRouter()
           });
         },
       })
-      .query("communities", {
-        resolve({ ctx }) {
-          return ctx.prisma.community.findMany({
-            where: { users: { some: { id: ctx.session.user.id } } },
-          });
-        },
-      })
   );

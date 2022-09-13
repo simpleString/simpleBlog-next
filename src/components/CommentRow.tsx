@@ -1,4 +1,3 @@
-import PencilIcon from "@heroicons/react/24/outline/PencilIcon";
 import { Comment, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
@@ -6,7 +5,8 @@ import { useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
-import { useIsAuth } from "../hooks/isAuth";
+import { useIsAuth } from "../hooks/useIsAuth";
+import { PencilIcon } from "./Svg";
 
 type CommentRowProps = {
   comment:
@@ -17,11 +17,6 @@ type CommentRowProps = {
         })[];
       };
 };
-// | {
-//     comment: Comment & {
-//       user: User;
-//     };
-//   };
 
 type CommentStateStatus = {
   comment: string;
@@ -116,7 +111,7 @@ const CommentRow: React.FC<CommentRowProps> = ({ comment }) => {
             }}
           >
             <a>Edit</a>
-            <PencilIcon className="h-6 w-6 ml-2 inline-block" />
+            <PencilIcon />
           </div>
         ) : null}
       </div>

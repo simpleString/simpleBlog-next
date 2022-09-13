@@ -4,7 +4,7 @@ import { trpc } from "../utils/trpc";
 import CommentRow from "./CommentRow";
 import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
-import { useIsAuth } from "../hooks/isAuth";
+import { useIsAuth } from "../hooks/useIsAuth";
 
 type CommentSectionProps = {
   post:
