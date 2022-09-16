@@ -4,7 +4,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const NavBarWithNoSSR = dynamic(() => import("./NavBar"), {
+const NavBarWithNoSSR = dynamic(() => import("./Navbar/NavBar"), {
   ssr: false,
 });
 
