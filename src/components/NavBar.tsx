@@ -28,7 +28,7 @@ const NavBar: React.FC = () => {
   };
 
   const delayedCloseMenu = () =>
-    setTimeout(() => setSearchMenuOpened(false), 1000);
+    setTimeout(() => setSearchMenuOpened(false), 100);
 
   return (
     <nav className="relative">

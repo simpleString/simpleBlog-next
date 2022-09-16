@@ -2,9 +2,19 @@ import { SVGProps } from "react";
 import { twMerge } from "tailwind-merge";
 
 export const PencilIcon = () => <i className="ri-pencil-line" />;
-export const ChevronUpIcon = () => <i className="" />;
-export const ChevronDownIcon = () => <i className="" />;
-export const MessageBubbleIcon = () => <i className="" />;
+export const ChevronUpIcon = ({
+  className,
+  ...props
+}: SVGProps<HTMLElement>) => (
+  <i {...props} className={twMerge("ri-arrow-up-s-line", className)} />
+);
+export const ChevronDownIcon = ({
+  className,
+  ...props
+}: SVGProps<HTMLElement>) => (
+  <i {...props} className={twMerge("ri-arrow-down-s-line", className)} />
+);
+export const MessageBubbleIcon = () => <i className="ri-chat-1-line" />;
 export const UploadIcon = () => <i className="ri-upload-line" />;
 export const SearchIcon = () => <i className="ri-search-line" />;
 export const MenuIcon = (props: SVGProps<SVGSVGElement>) => (

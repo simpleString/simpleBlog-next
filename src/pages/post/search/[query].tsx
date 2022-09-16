@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import { Layout } from "../../../components/Layout";
 import LoadingSpinner from "../../../components/LoadingSpinner";
-import { PostComponent } from "../../../components/PostComponent";
+import { PostComponent } from "../../../components/posts/PostComponent";
 import { trpc } from "../../../utils/trpc";
 import { NextPageWithLayout } from "../../_app";
 

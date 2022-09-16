@@ -50,10 +50,10 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
         placeholder: "Text(optional)",
       }),
     ],
-    onUpdate({ editor }) {
-      const item = editor.getJSON();
-      setContent(item);
-    },
+    // onUpdate({ editor }) {
+    //   const item = editor.getJSON();
+    //   setContent(item);
+    // },
     content,
     editorProps: {
       attributes: {
@@ -62,15 +62,14 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
       },
     },
   });
-
+  //TODO: refactor this!!!
   useEffect(() => {
     if (editor) {
       try {
         editor.commands?.setContent(content || "");
       } catch (error) {}
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
+  }, [content, editor]);
 
   return (
     <>

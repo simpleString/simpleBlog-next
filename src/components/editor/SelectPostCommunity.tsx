@@ -41,7 +41,7 @@ const SelectPostCommunity: React.FC<SelectPostCommunity> = ({
     }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [value]);
+  }, [communitiesSearch, value]);
 
   return (
     <div>

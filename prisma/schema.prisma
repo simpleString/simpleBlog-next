@@ -31,12 +31,12 @@ model Community {
 }
 
 model Post {
-  id     String @id @default(cuid())
+  id     String  @id @default(cuid())
   title  String
-  text   String @db.Text
-  img    String
+  text   String  @db.Text
+  image  String?
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   likes         Like[]
   likesValue    Int        @default(0)
@@ -105,7 +105,7 @@ model Session {
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  name          String // I hope that any user have a name
   email         String?   @unique
   emailVerified DateTime?
   image         String?
