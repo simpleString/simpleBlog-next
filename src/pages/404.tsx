@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { Layout } from "../components/Layout";
+import { Layout } from "../layouts/Layout";
 import { NextPageWithLayout } from "./_app";
 
 const NotFound: NextPageWithLayout<React.FC> = () => {

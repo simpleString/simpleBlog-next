@@ -16,7 +16,6 @@ export const communityRouter = createRouter()
           users: { none: { id: userId } },
         },
       });
-      console.log(communities);
 
       return communities;
     },

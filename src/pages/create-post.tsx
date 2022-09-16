@@ -11,18 +11,28 @@ import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import SelectPostCommunity from "../components/editor/SelectPostCommunity";
 import { MenuBar } from "../components/editor/MenuBar";
-import { Layout } from "../components/Layout";
+import { Layout } from "../layouts/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
+import { User } from "next-auth";
 
 export type CommunityProps = {
+  type: "community";
+  id: string;
+  img: string;
+  title: string;
+};
+
+export type UserBlogProps = {
+  type: "user";
+  userId: string;
   img: string;
   title: string;
 };
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
-  useSession({ required: true });
+  const session = useSession({ required: true });
 
   const utils = trpc.useContext();
   const createPost = trpc.useMutation(["post.createPost"], {
@@ -35,7 +45,9 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   const [content, setContent] = useState<JSONContent>();
   const [postTitle, setPostTitle] = useState("");
 
-  const [currentCommunity, setCurrentCommunity] = useState<CommunityProps>();
+  const [currentCommunity, setCurrentCommunity] = useState<
+    CommunityProps | UserBlogProps
+  >();
 
   const editor = useEditor({
     extensions: [
@@ -71,6 +83,8 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     }
   }, [content, editor]);
 
+  if (session.status === "loading") return <LoadingSpinner />;
+
   return (
     <>
       <div className="mt-7 shadow p-4">
@@ -78,6 +92,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
           <SelectPostCommunity
             currentCommunity={currentCommunity}
             setCurrentCommunity={setCurrentCommunity}
+            user={session.data.user as User}
           />
         </div>
         <div className="w-full">

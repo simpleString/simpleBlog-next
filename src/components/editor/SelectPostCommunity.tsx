@@ -1,112 +1,190 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { CommunityProps } from "../../pages/create-post";
+import { User } from "next-auth";
+import { useSession } from "next-auth/react";
+import NextImage from "next/image";
+import { list } from "postcss";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { placeholderAvatar } from "../../constants/frontend";
+import { useClickOutside } from "../../hooks/useClickOutside";
+import { CommunityProps, UserBlogProps } from "../../pages/create-post";
+import { stateCallback } from "../../types/frontend";
 import { trpc } from "../../utils/trpc";
+import { ChevronDownIcon } from "../Svg";
 
 type SelectPostCommunity = {
-  currentCommunity: CommunityProps | undefined;
-  setCurrentCommunity: Dispatch<SetStateAction<CommunityProps | undefined>>;
+  currentCommunity: CommunityProps | UserBlogProps | undefined;
+  setCurrentCommunity: stateCallback<
+    CommunityProps | UserBlogProps | undefined
+  >;
+  user: User;
 };
 
 const SelectPostCommunity: React.FC<SelectPostCommunity> = ({
   currentCommunity,
   setCurrentCommunity,
+  user,
 }) => {
-  const [value, setValue] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [openSelectMenu, setOpenSelectMenu] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  const userCommunities = trpc.useQuery(["community.communitiesForUser"]);
-  const communitiesSearch = trpc.useQuery(
-    ["community.search", { title: value }],
-    { enabled: false, keepPreviousData: true }
+  const { data: userCommunities } = trpc.useQuery([
+    "community.communitiesForUser",
+  ]);
+
+  const filteredUserCommunities = useMemo(
+    () =>
+      userCommunities?.filter((community) => {
+        if (!searchValue) return true;
+        return community.title.startsWith(searchValue);
+      }),
+    [userCommunities, searchValue]
   );
 
-  const chooseCommunityOther = (id: string) => {
-    setCurrentCommunity(communitiesSearch.data?.find((c) => c.id === id));
-    setValue("");
+  const { data: communitiesSearch, refetch: updateCommunitiesSearch } =
+    trpc.useQuery(["community.search", { title: searchValue }], {
+      enabled: false,
+      keepPreviousData: true,
+    });
+
+  const toggleSelectMenu = useCallback(() => {
+    setSearchValue("");
     setOpenSelectMenu(!openSelectMenu);
+  }, [openSelectMenu]);
+
+  const closeSelectMenu = () => {
+    setSearchValue("");
+    setOpenSelectMenu(false);
+  };
+
+  const chooseAsBlog = () => {
+    setCurrentCommunity({
+      userId: user.id,
+      img: user.image,
+      title: user.name,
+      type: "user",
+    });
+    toggleSelectMenu();
+  };
+
+  const chooseCommunityOther = (id: string) => {
+    const selecterCommunity = communitiesSearch?.find((c) => c.id === id);
+    if (!selecterCommunity) return;
+    setCurrentCommunity({ type: "community", ...selecterCommunity });
+    toggleSelectMenu();
   };
 
   const chooseCommunity = (id: string) => {
-    setCurrentCommunity(userCommunities.data?.find((c) => c.id === id));
-    setValue("");
-    setOpenSelectMenu(!openSelectMenu);
+    const selecterCommunity = filteredUserCommunities?.find((c) => c.id === id);
+    if (!selecterCommunity) return;
+    setCurrentCommunity({ type: "community", ...selecterCommunity });
+    toggleSelectMenu();
   };
 
   useEffect(() => {
+    setCurrentCommunity({
+      userId: user.id,
+      type: "user",
+      img: user.image,
+      title: user.name,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      if (value) {
-        communitiesSearch.refetch();
-        console.log(value);
+      if (searchValue) {
+        updateCommunitiesSearch();
       }
     }, 1000);
-
     return () => clearTimeout(delayDebounceFn);
-  }, [communitiesSearch, value]);
+  }, [searchValue, updateCommunitiesSearch]);
+
+  useClickOutside({ ref: listRef, onClose: closeSelectMenu });
+
+  const userCommunitiesExists =
+    filteredUserCommunities && filteredUserCommunities.length > 0;
+
+  const communitiesSearchExists = communitiesSearch && searchValue;
 
   return (
-    <div>
+    <div ref={listRef}>
       <button
-        className="btn"
-        onClick={() => {
-          if (openSelectMenu) {
-            setValue("");
-          }
-          setOpenSelectMenu(!openSelectMenu);
-        }}
+        className="bg-base-200 flex items-center space-x-2 p-2 rounded"
+        onClick={toggleSelectMenu}
       >
-        <div>
-          <img src={currentCommunity?.img} alt="Community Image" />
-          <span>{currentCommunity?.title}</span>
-        </div>
+        <NextImage
+          src={currentCommunity?.img || "/community.jpeg"}
+          alt="Community Image"
+          width="24"
+          height="24"
+        />
+        <span>{currentCommunity?.title}</span>
+        <ChevronDownIcon />
       </button>
       {openSelectMenu && (
         <ul className="menu p-4 shadow bg-base-100 absolute w-56 z-50">
           <div className="form-control">
-            <div className="input-group">
-              <input
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="Search..."
-                className="input  input-bordered input-sm"
-              />
-              <button className="btn btn-square">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
-            </div>
+            <input
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Search..."
+              className="input  input-bordered input-sm"
+            />
           </div>
           <li className="menu-title">
-            <span>Subscriptions</span>
+            <span>Blog</span>
           </li>
-          {userCommunities.data?.map((c) => (
-            <li key={c.id} onClick={() => chooseCommunity(c.id)}>
-              <div>
-                <img src={c.img} alt="Community Image" />
-                <span>{c.title}</span>
-              </div>
-            </li>
-          ))}
-          {communitiesSearch.data && value && (
+          <li onClick={chooseAsBlog}>
+            <div>
+              <NextImage
+                src={user.image}
+                alt="Community Image"
+                width="24"
+                height="24"
+              />
+              <span>{user.name}</span>
+            </div>
+          </li>
+          {userCommunitiesExists && (
+            <>
+              <li className="menu-title">
+                <span>Subscriptions</span>
+              </li>
+              {filteredUserCommunities.map((c) => (
+                <li key={c.id} onClick={() => chooseCommunity(c.id)}>
+                  <div>
+                    <NextImage
+                      src={c.img}
+                      alt="Community Image"
+                      width="24"
+                      height="24"
+                    />
+                    <span>{c.title}</span>
+                  </div>
+                </li>
+              ))}
+            </>
+          )}
+          {communitiesSearchExists && (
             <>
               <li className="menu-title">
                 <span>Other</span>
               </li>
-              {communitiesSearch.data?.map((c) => (
+              {communitiesSearch.map((c) => (
                 <li key={c.id} onClick={() => chooseCommunityOther(c.id)}>
                   <div>
-                    <img src={c.img} alt="Community Image" />
+                    <NextImage
+                      src={c.img}
+                      alt="Community Image"
+                      width="24"
+                      height="24"
+                    />
                     <span>{c.title}</span>
                   </div>
                 </li>

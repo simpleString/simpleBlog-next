@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { ReactElement, useEffect } from "react";
-import { Layout } from "../components/Layout";
+import { Layout } from "../layouts/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { PostComponent } from "../components/posts/PostComponent";
 import { useScrollState } from "../store";

@@ -1,14 +1,14 @@
 import dynamic from "next/dynamic";
-import { Footer } from "./Footer";
+import { Footer } from "../components/Footer";
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-const NavBarWithNoSSR = dynamic(() => import("./Navbar/NavBar"), {
+const NavBarWithNoSSR = dynamic(() => import("../components/Navbar/NavBar"), {
   ssr: false,
 });
 
-const SidebarWithNoSSR = dynamic(() => import("./Sidebar"), {
+const SidebarWithNoSSR = dynamic(() => import("../components/Sidebar"), {
   ssr: false,
 });
 

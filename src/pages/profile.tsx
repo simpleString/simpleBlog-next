@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { FormEvent, ReactElement, useEffect, useState } from "react";
-import { Layout } from "../components/Layout";
+import { Layout } from "../layouts/Layout";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 import { supabase } from "../utils/supabaseClient";

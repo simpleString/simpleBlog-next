@@ -8,9 +8,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect } from "react";
 import ContentLoader from "react-content-loader";
-import CommentSection from "../../components/CommentSection";
-import InteractivePanel from "../../components/InteractivePanel";
-import { Layout } from "../../components/Layout";
+import { Layout } from "../../layouts/Layout";
 import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
 
