@@ -7,6 +7,8 @@ import { supabase } from "../utils/supabaseClient";
 import { useSession } from "next-auth/react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { UploadIcon } from "../components/Svg";
+import { fileUploader } from "../utils/fileUploader";
+import { SupabaseBackets } from "../constants/supabase";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });
@@ -38,19 +40,13 @@ const Profile: NextPageWithLayout<React.FC> = () => {
   const onFileChange = async (e: FormEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
 
-    const { error: uploadError, data } = await supabase.storage
-      .from("photos")
-      .upload(fileName, file);
-    if (uploadError) throw uploadError;
+    const photoUrl = await fileUploader({
+      file,
+      backet: SupabaseBackets.PHOTO,
+    });
 
-    const { data: publicData } = supabase.storage
-      .from("photos")
-      .getPublicUrl(data.path);
-
-    await updateUserProfile.mutateAsync({ imgUrl: publicData.publicUrl });
+    await updateUserProfile.mutateAsync({ imgUrl: photoUrl });
   };
 
   if (me.isLoading) {

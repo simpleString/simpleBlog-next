@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { Modal } from "./Modal";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +36,18 @@ export const AddImage = ({ editor }: { editor: any }) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const MenuBar = ({ editor }: { editor: any }) => {
+  const uploadImage = (e: FormEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+
+    // if (url) {
+    //   editor.chain().focus().setImage({ src: url }).run();
+    // }
+  };
+
   if (!editor) {
     return null;
   }
@@ -150,9 +162,10 @@ export const MenuBar = ({ editor }: { editor: any }) => {
         <div className="divider divider-horizontal mx-1 py-1"></div>
 
         <div className="tooltip" data-tip="Add Image">
-          <button className="btn btn-square btn-ghost btn-sm font-normal">
+          <label className="btn btn-square btn-ghost btn-sm font-normal">
+            <input onChange={uploadImage} className="hidden" type="file" />
             <i className="ri-image-add-line ri-xl" />
-          </button>
+          </label>
         </div>
 
         {/* <button

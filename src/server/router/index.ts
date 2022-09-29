@@ -6,6 +6,7 @@ import { commentRouter } from "./comments";
 import { postRouter } from "./posts";
 import { userRouter } from "./users";
 import { communityRouter } from "./communities";
+import { fileRouter } from "./files";
 
 export const appRouter = createRouter()
   .transformer(superjson)
@@ -19,6 +20,7 @@ export const appRouter = createRouter()
   .merge("comment.", commentRouter)
   .merge("user.", userRouter)
   .merge("post.", postRouter)
+  .merge('file.', fileRouter)
   .merge("community.", communityRouter);
 
 // export type definition of API
