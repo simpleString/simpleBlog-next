@@ -26,17 +26,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
 
   const utils = trpc.useContext();
 
-  const createComment = trpc.useMutation(["comment.createComment"], {
+  const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess() {
       utils.invalidateQueries(["post.post", { postId: post?.id || "" }]);
     },
   });
 
+  const onSaveButtonClick = async () => {
+    checkIsAuth();
+    if (commentState.length > 0) {
+      await createCommentMutation.mutateAsync({
+        postId: post?.id || "",
+        text: commentState,
+      });
+      setCommentState("");
+    }
+  };
+
   const [commentState, setCommentState] = useState("");
 
   return (
     <>
-      <div className="border border-gray-800 mb-4 ">
+      <div className=" shadow">
         <CustomTextarea
           value={commentState}
           placeholder="Write your comment here..."
@@ -47,28 +58,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
           }}
         />
         <div className="flex justify-end pb-4">
-          <CustomButton
-            variant="secondary"
-            onClick={async () => {
-              checkIsAuth();
-              if (commentState.length > 0) {
-                await createComment.mutateAsync({
-                  postId: post?.id || "",
-                  text: commentState,
-                });
-                setCommentState("");
-              }
-            }}
-          >
+          <button className="btn" onClick={onSaveButtonClick}>
             Comment
-          </CustomButton>
+          </button>
         </div>
       </div>
       <div className="">
         {post?.comments.map((comment) => (
           <div
             key={comment.id}
-            className="border border-black p-2 odd:bg-yellow-100"
+            className="p-2  shadow bg-primary  odd:bg-secondary text-primary-content odd:text-secondary-content"
           >
             <CommentRow comment={comment} />
           </div>

@@ -3,45 +3,40 @@ import Highlight from "@tiptap/extension-highlight";
 import ImageTipTap from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
-import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useSession } from "next-auth/react";
-import NextLink from "next/link";
-import { useRouter } from "next/router";
-import { FormEvent, ReactElement, useEffect, useState } from "react";
-import SelectPostCommunity from "../components/editor/SelectPostCommunity";
-import { MenuBar } from "../components/editor/MenuBar";
-import { Layout } from "../layouts/Layout";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { trpc } from "../utils/trpc";
-import type { NextPageWithLayout } from "./_app";
-import { User } from "next-auth";
-import { SupabaseBackets } from "../constants/supabase";
-import { fileUploader } from "../utils/fileUploader";
 import Image from "next/image";
-import { CloseIcon } from "../components/Svg";
+import NextLink from "next/link";
+import { FormEvent, useEffect, useState } from "react";
+import { SupabaseBackets } from "../../constants/supabase";
+import { fileUploader } from "../../utils/fileUploader";
+import { CloseIcon } from "../Svg";
+import { MenuBar } from "./MenuBar";
 
-const CreatePost: NextPageWithLayout<React.FC> = () => {
-  const session = useSession({ required: true });
+type PostEditorProps = {
+  title: string;
+  text: string;
+  image: string;
+  savePost: ({
+    title,
+    text,
+    image,
+  }: {
+    title: string;
+    text: string;
+    image: string;
+  }) => void;
+};
 
-  const utils = trpc.useContext();
-  const createPostMutation = trpc.useMutation(["post.createPost"], {
-    onSuccess() {
-      utils.invalidateQueries(["post.posts"]);
-    },
-  });
-  const router = useRouter();
-
-  const onButtonSaveClick = async () => {
-    // console.log(content);
-    await createPostMutation.mutateAsync({
-      text: content || "",
-      image: postImage,
-      title: postTitle,
-    });
-
-    router.push("/");
-  };
+const PostEditor: React.FC<PostEditorProps> = ({
+  text,
+  title,
+  image,
+  savePost,
+}) => {
+  const [content, setContent] = useState(text);
+  const [postTitle, setPostTitle] = useState(title);
+  const [postImage, setPostImage] = useState(image);
 
   const onButtonClearImageClick = () => {
     setPostImage("");
@@ -59,9 +54,9 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
     setPostImage(photoUrl);
   };
 
-  const [postImage, setPostImage] = useState("");
-  const [content, setContent] = useState<string>();
-  const [postTitle, setPostTitle] = useState("");
+  const onButtonSaveClick = () => {
+    savePost({ title: postTitle, text: content, image: postImage });
+  };
 
   const editor = useEditor({
     extensions: [
@@ -96,9 +91,8 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
         editor.commands?.setContent(content || "");
       } catch (error) {}
     }
-  }, [content, editor]);
-
-  if (session.status === "loading") return <LoadingSpinner />;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
 
   return (
     <>
@@ -180,8 +174,4 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   );
 };
 
-CreatePost.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
-};
-
-export default CreatePost;
+export default PostEditor;

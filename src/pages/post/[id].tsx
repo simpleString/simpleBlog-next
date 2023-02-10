@@ -1,13 +1,8 @@
-import Document from "@tiptap/extension-document";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import Placeholder from "@tiptap/extension-placeholder";
-import Typography from "@tiptap/extension-typography";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import { useRouter } from "next/router";
-import { ReactElement, useEffect } from "react";
+import { ReactElement } from "react";
 import ContentLoader from "react-content-loader";
+import CommentSection from "../../components/CommentSection";
+import InteractivePanel from "../../components/InteractivePanel";
 import { Layout } from "../../layouts/Layout";
 import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
@@ -33,45 +28,24 @@ const Post: NextPageWithLayout<React.FC> = () => {
   const postId = router.query.id as string;
   const post = trpc.useQuery(["post.post", { postId }]);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        document: false,
-      }),
-      Highlight,
-      Typography,
-      Document,
-      Image,
-      Placeholder,
-    ],
-    editable: false,
-    content: "",
-    editorProps: {
-      attributes: {
-        class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl m-5 focus:outline-none",
-      },
-    },
-  });
-
-  useEffect(() => {
-    editor?.commands.setContent(
-      post.data && post.data.text ? JSON.parse(post.data.text) : ""
-    );
-  }, [editor, post.data]);
-
   return (
-    <div className="max-w-3xl mx-auto space-y-2 mb-5">
-      <div className="flex flex-col border-2 border-black ">
+    <div className="space-y-4 sm:p-4">
+      <div className="flex flex-col shadow">
         {post.isLoading ? (
           <HeadBodyGrid className="min-w-full" />
         ) : (
-          <EditorContent editor={editor} />
+          post &&
+          post.data && (
+            <div
+              dangerouslySetInnerHTML={{ __html: post.data.text }}
+              className="prose prose-sm focus:outline-none p-4 min-h-[200px] prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1"
+            />
+          )
         )}
+        <InteractivePanel post={post.data} />
       </div>
 
-      {/* <InteractivePanel post={post.data} /> */}
-      {/* <CommentSection post={post.data} /> */}
+      <CommentSection post={post.data} />
     </div>
   );
 };

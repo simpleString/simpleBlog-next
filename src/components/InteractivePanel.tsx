@@ -28,7 +28,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
   });
 
   return (
-    <div className="flex p-4 items-center border-2 border-black ">
+    <div className="flex p-4 items-center">
       <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
         <i className="ri-chat-1-line mr-2 group-hover:fill-current" />
         <span>{post?.commentsCount}</span>

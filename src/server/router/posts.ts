@@ -70,6 +70,7 @@ export const postRouter = createRouter()
       // }
 
       // const firstChildComment = await ctx.prisma.comment.findMany({})
+      console.log(postResult);
 
       return postResult;
     },
@@ -172,12 +173,11 @@ export const postRouter = createRouter()
         },
       })
       .mutation("updatePost", {
-        //TODO: Need to check image guard!!!
         input: z.object({
           id: z.string().cuid(),
           title: z.string().min(5),
           text: z.string(),
-          img: z.string().url(),
+          image: z.string().url(),
         }),
         async resolve({ input, ctx }) {
           const post = await ctx.prisma.post.findFirst({
