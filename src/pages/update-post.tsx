@@ -1,7 +1,6 @@
-import { JSONContent } from "@tiptap/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import PostEditor from "../components/editor/PostEditor";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { Layout } from "../layouts/Layout";
