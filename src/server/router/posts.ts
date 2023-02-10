@@ -160,28 +160,14 @@ export const postRouter = createRouter()
         },
       })
       .mutation("createPost", {
-        //TODO: Need to check image guard!!!
         input: z.object({
           title: z.string().min(5),
           text: z.string(),
-          img: z.string().url(),
-          tagIds: z.string().cuid().array().optional(),
+          image: z.string().url().or(z.string().max(0)),
         }),
         async resolve({ input, ctx }) {
-          // Check that it's a image
           return ctx.prisma.post.create({
             data: { ...input, userId: ctx.session.user.id },
-          });
-          const result = await fetch(input.img);
-          if (
-            result.status === 200 &&
-            result.headers.has("Content-Type") &&
-            result.headers.get("Content-Type")?.includes("image/")
-          ) {
-          }
-          throw new trpc.TRPCError({
-            code: "PARSE_ERROR",
-            message: "Image didn't exists.",
           });
         },
       })
@@ -192,7 +178,6 @@ export const postRouter = createRouter()
           title: z.string().min(5),
           text: z.string(),
           img: z.string().url(),
-          tagIds: z.string().cuid().array().optional(),
         }),
         async resolve({ input, ctx }) {
           const post = await ctx.prisma.post.findFirst({

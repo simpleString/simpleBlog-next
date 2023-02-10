@@ -61,7 +61,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
             <div className="w-32 rounded-full">
               <Image
                 src={me.data?.image ?? "/user-placeholder.jpg"}
-                alt="Not image"
+                alt="Profile image"
                 layout="fill"
               />
             </div>

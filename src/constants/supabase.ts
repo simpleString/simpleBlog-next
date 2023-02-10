@@ -1,6 +1,4 @@
-
-
 export enum SupabaseBackets {
-  PHOTO = 'photos',
-  FILE = 'file'
+  PHOTO = "photos",
+  FILE = "files",
 }

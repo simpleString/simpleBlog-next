@@ -16,11 +16,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
       <NavBarWithNoSSR />
-      <div className="flex mt-[70px]">
+      <div className="flex mt-20">
         <SidebarWithNoSSR />
-        <div className=" mx-auto max-w w-full md:w-2/4 lg:w-1/3">
-          {children}
-        </div>
+        <div className="mx-auto w-full sm:max-w-2xl ">{children}</div>
       </div>
       <Footer />
     </>
