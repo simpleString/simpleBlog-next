@@ -1,7 +1,8 @@
 import { InferGetServerSidePropsType } from "next";
 import { getProviders, signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import CustomButton from "../../components/CustomButton";
+import CustomButton from "../../components/custom/CustomButton";
+import NextLink from "next/link";
 
 const Signin: React.FC<
   InferGetServerSidePropsType<typeof getServerSideProps>
@@ -13,7 +14,9 @@ const Signin: React.FC<
     <div className="h-screen flex justify-center items-center bg-[url(/background.svg)] bg-no-repeat bg-center bg-auto bg-origin-border">
       <div className=" ">
         <div className="font-extrabold text-transparent text-5xl sm:text-8xl bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-400 p-4 mb-8 text-center">
-          SimpleBlog
+          <NextLink href="/">
+            <a>SimpleBlog</a>
+          </NextLink>
         </div>
         <div key={providers?.google.id} className="flex justify-center">
           <CustomButton

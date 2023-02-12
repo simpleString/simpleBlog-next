@@ -1,10 +1,12 @@
 // src/server/router/index.ts
-import { createRouter } from "./context";
 import superjson from "superjson";
+import { createRouter } from "./context";
 
+import { commentRouter } from "./comments";
 import { postRouter } from "./posts";
 import { userRouter } from "./users";
-import { setTimeout } from "timers/promises";
+import { communityRouter } from "./communities";
+import { fileRouter } from "./files";
 
 export const appRouter = createRouter()
   .transformer(superjson)
@@ -15,8 +17,11 @@ export const appRouter = createRouter()
 
   //   return next();
   // })
+  .merge("comment.", commentRouter)
   .merge("user.", userRouter)
-  .merge("post.", postRouter);
+  .merge("post.", postRouter)
+  .merge('file.', fileRouter)
+  .merge("community.", communityRouter);
 
 // export type definition of API
 export type AppRouter = typeof appRouter;

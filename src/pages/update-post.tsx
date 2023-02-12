@@ -1,49 +1,55 @@
-import { JSONContent } from "@tiptap/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ReactElement, useEffect, useState } from "react";
-import { Layout } from "../components/Layout";
-import Tiptap from "../components/Tiptap";
+import { ReactElement } from "react";
+import PostEditor from "../components/editor/PostEditor";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { Layout } from "../layouts/Layout";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 
 const UpdatePost: NextPageWithLayout<React.FC> = () => {
-  useSession({ required: true });
+  const session = useSession({ required: true });
   const router = useRouter();
 
-  const [content, setContent] = useState<JSONContent>();
   const postId = router.query.id as string;
 
   const utils = trpc.useContext();
 
-  const post = trpc.useQuery(["post.post", { postId }]);
-  const updatePost = trpc.useMutation(["post.updatePost"], {
+  const { data: post } = trpc.useQuery(["post.post", { postId }]);
+  const updatePostMutation = trpc.useMutation(["post.updatePost"], {
     onSuccess() {
       utils.invalidateQueries(["post.post", { postId }]);
       utils.invalidateQueries(["post.posts"]);
     },
-  }); //TODO: Do optimistic mutation
+  });
 
-  useEffect(() => {
-    if (post.data && post.data.text) setContent(JSON.parse(post.data.text));
-  }, [post?.data]);
+  const updatePost = ({
+    title,
+    text,
+    image,
+  }: {
+    title: string;
+    text: string;
+    image: string;
+  }) => {
+    if (!post) return;
+    updatePostMutation.mutateAsync({ id: post.id, image, text, title });
+    router.back();
+  };
+
+  if (session.status === "loading") return <LoadingSpinner />;
 
   return (
-    <div className="container mx-auto mt-10 h-screen">
-      <Tiptap
-        content={content}
-        setContent={setContent}
-        onSave={async (data) => {
-          await updatePost.mutateAsync({
-            id: post.data?.id || "",
-            img: data.img,
-            text: JSON.stringify(content) || data.title,
-            title: data.title,
-          });
-          router.push("/");
-        }}
-      />
-    </div>
+    <>
+      {post && (
+        <PostEditor
+          image={post.image}
+          text={post.text}
+          title={post.title}
+          savePost={updatePost}
+        />
+      )}
+    </>
   );
 };
 

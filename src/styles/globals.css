@@ -2,9 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  html {
-    @apply bg-white;
-    /* @apply selection:bg-yellow-100 selection:text-black; */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--b3)) hsl(var(--b2));
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: hsl(var(--b2));
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--b3));
+  border-radius: 20px;
+  /* border: 3px solid orange; */
+}
+
+@media screen and (max-width: 768px) {
+  * {
+    scrollbar-width: initial;
+  }
+
+  /* Works on Chrome, Edge, and Safari */
+  *::-webkit-scrollbar {
+    width: auto;
   }
 }

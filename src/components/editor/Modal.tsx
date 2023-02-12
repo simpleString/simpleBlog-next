@@ -2,7 +2,9 @@ import { useState } from "react";
 
 //Modal component to enter urls
 type ModalProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cancelOperationHandler: () => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   proceedOperationHandler: ({}: any) => any;
   inputLabel: string;
 };

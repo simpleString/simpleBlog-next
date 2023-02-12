@@ -2,6 +2,7 @@ import { withTRPC } from "@trpc/next";
 import { SessionProvider } from "next-auth/react";
 import superjson from "superjson";
 import type { AppRouter } from "../server/router";
+import "remixicon/fonts/remixicon.css";
 import "../styles/globals.css";
 
 import type { NextPage } from "next";
@@ -66,5 +67,5 @@ export default withTRPC<AppRouter>({
   /**
    * @link https://trpc.io/docs/ssr
    */
-  ssr: true,
+  ssr: false,
 })(MyApp);
