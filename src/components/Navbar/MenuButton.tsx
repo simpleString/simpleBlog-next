@@ -1,5 +1,4 @@
 import { useSidebarState } from "../../store";
-import { MenuIcon, CloseIcon } from "../Svg";
 
 const MenuButton: React.FC = () => {
   const toggleSidebar = useSidebarState((state) => state.toggle);
@@ -18,9 +17,9 @@ const MenuButton: React.FC = () => {
           toggleSidebar();
         }}
       />
-      <MenuIcon className="swap-off fill-current" />
+      <i className="ri-menu-line swap-off " />
 
-      <CloseIcon className="swap-on fill-current" />
+      <i className="ri-close-line swap-on " />
     </label>
   );
 };

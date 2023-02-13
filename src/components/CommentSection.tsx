@@ -1,49 +1,47 @@
-import { Comment, Like, Post, User } from "@prisma/client";
 import { useState } from "react";
+import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { trpc } from "../utils/trpc";
 import CommentRow from "./CommentRow";
-import CustomButton from "./custom/CustomButton";
 import CustomTextarea from "./custom/CustomTextarea";
-import { useIsAuth } from "../hooks/useIsAuth";
+import LoadingSpinner from "./LoadingSpinner";
 
 type CommentSectionProps = {
-  post:
-    | (Post & {
-        likes: Like[];
-        comments: (Comment & {
-          user: User;
-          childrenComments: (Comment & {
-            user: User;
-          })[];
-        })[];
-      })
-    | null
-    | undefined;
+  postId: string;
+  callbackUrl: string;
 };
 
-const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
-  const checkIsAuth = useIsAuth("/post/" + post?.id);
-
+const CommentSection: React.FC<CommentSectionProps> = ({
+  postId,
+  callbackUrl,
+}) => {
+  const checkIsAuth = useIsAuthCheck(callbackUrl);
   const utils = trpc.useContext();
+
+  const [commentState, setCommentState] = useState("");
 
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess() {
-      utils.invalidateQueries(["post.post", { postId: post?.id || "" }]);
+      utils.invalidateQueries(["comment.getCommentsByPostId", { postId }]);
     },
   });
+
+  const { data: comments } = trpc.useQuery([
+    "comment.getCommentsByPostId",
+    { postId },
+  ]);
 
   const onSaveButtonClick = async () => {
     checkIsAuth();
     if (commentState.length > 0) {
       await createCommentMutation.mutateAsync({
-        postId: post?.id || "",
+        postId: postId,
         text: commentState,
       });
       setCommentState("");
     }
   };
 
-  const [commentState, setCommentState] = useState("");
+  if (!comments) return <LoadingSpinner />;
 
   return (
     <>
@@ -64,12 +62,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({ post }) => {
         </div>
       </div>
       <div className="">
-        {post?.comments.map((comment) => (
-          <div
-            key={comment.id}
-            className="p-2  shadow bg-primary  odd:bg-secondary text-primary-content odd:text-secondary-content"
-          >
-            <CommentRow comment={comment} />
+        {comments.map((comment) => (
+          <div key={comment.id} className="p-2  shadow ">
+            <CommentRow
+              comment={comment}
+              callbackUrl={"/post/" + comment.postId}
+              openComments={true}
+            />
           </div>
         ))}
       </div>

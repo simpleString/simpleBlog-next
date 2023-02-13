@@ -3,6 +3,7 @@ import { ReactElement } from "react";
 import ContentLoader from "react-content-loader";
 import CommentSection from "../../components/CommentSection";
 import InteractivePanel from "../../components/InteractivePanel";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import { Layout } from "../../layouts/Layout";
 import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
@@ -26,26 +27,32 @@ const Post: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
 
   const postId = router.query.id as string;
-  const post = trpc.useQuery(["post.post", { postId }]);
+  const postQuery = trpc.useQuery(["post.post", { postId }]);
+
+  if (!postQuery.data) return <LoadingSpinner />;
 
   return (
     <div className="space-y-4 sm:p-4">
       <div className="flex flex-col shadow">
-        {post.isLoading ? (
+        {postQuery.isLoading ? (
           <HeadBodyGrid className="min-w-full" />
         ) : (
-          post &&
-          post.data && (
-            <div
-              dangerouslySetInnerHTML={{ __html: post.data.text }}
-              className="prose prose-sm focus:outline-none p-4 min-h-[200px] prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1"
-            />
-          )
+          <div
+            dangerouslySetInnerHTML={{ __html: postQuery.data.text }}
+            className="prose prose-sm focus:outline-none p-4 min-h-[200px] prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1"
+          />
         )}
-        <InteractivePanel post={post.data} />
+        <InteractivePanel
+          post={postQuery.data}
+          isShowEditSection={true}
+          callbackUrl={`/post/${postQuery.data.id}`}
+        />
       </div>
 
-      <CommentSection post={post.data} />
+      <CommentSection
+        postId={postQuery.data.id}
+        callbackUrl={`/post/${postQuery.data.id}`}
+      />
     </div>
   );
 };

@@ -2,7 +2,6 @@ import { signIn } from "next-auth/react";
 import NextLink from "next/link";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
-import { SearchIcon } from "../Svg";
 import IconMenu from "./IconMenu";
 import Logo from "./Logo";
 import MenuButton from "./MenuButton";
@@ -40,7 +39,7 @@ const NavBar: React.FC = () => {
               }}
               className="btn btn-ghost btn-square normal-case text-xl"
             >
-              <SearchIcon />
+              <i className="ri-search-line" />
             </a>
           </div>
           {userData ? (

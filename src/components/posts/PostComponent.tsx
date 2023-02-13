@@ -1,6 +1,6 @@
 import React from "react";
 import { inferQueryOutput } from "../../utils/trpc";
-import PostFooter from "./PostFooter";
+import InteractivePanel from "../InteractivePanel";
 import PostHeader from "./PostHeader";
 import PostImage from "./PostImage";
 import PostTitle from "./PostTitle";
@@ -21,13 +21,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
       <PostTitle title={post.title} postId={post.id} />
 
       {post.image && <PostImage image={post.image} postId={post.id} />}
-
-      <PostFooter
-        commentsCount={post.commentsCount}
-        like={postLike}
-        likesValue={post.likesValue}
-        postId={post.id}
-      />
+      <InteractivePanel post={post} callbackUrl={"/"} />
     </div>
   );
 };

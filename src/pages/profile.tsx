@@ -6,7 +6,6 @@ import { NextPageWithLayout } from "./_app";
 import { supabase } from "../utils/supabaseClient";
 import { useSession } from "next-auth/react";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { UploadIcon } from "../components/Svg";
 import { fileUploader } from "../utils/fileUploader";
 import { SupabaseBackets } from "../constants/supabase";
 
@@ -67,7 +66,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
             </div>
           </div>
           <label className="bottom-6 right-6 indicator-item indicator-bottom badge cursor-pointer badge-secondary">
-            <UploadIcon />
+            <i className="ri-upload-line" />
             <input
               className="hidden"
               onChange={onFileChange}

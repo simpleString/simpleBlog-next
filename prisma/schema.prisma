@@ -36,7 +36,7 @@ model Post {
   text   String  @db.Text
   image  String
   userId String
-  user   User    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User    @relation(fields: [userId], references: [id])
 
   likes         Like[]
   likesValue    Int        @default(0)

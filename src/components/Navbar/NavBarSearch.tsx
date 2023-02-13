@@ -2,7 +2,6 @@ import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { stateCallback } from "../../types/frontend";
-import { SearchIcon } from "../Svg";
 
 export type NavbarSearchProps = {
   searchMenuOpened: boolean;
@@ -50,7 +49,7 @@ const NavBarSearch: React.FC<NavbarSearchProps> = ({
             <li>
               <NextLink href={`/post/search/${searchValue}`}>
                 <a onClick={closeMenu}>
-                  <SearchIcon />
+                  <i className="ri-search-line" />
                   Go to result
                 </a>
               </NextLink>

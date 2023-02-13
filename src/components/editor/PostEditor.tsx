@@ -10,7 +10,6 @@ import NextLink from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { SupabaseBackets } from "../../constants/supabase";
 import { fileUploader } from "../../utils/fileUploader";
-import { CloseIcon } from "../Svg";
 import { MenuBar } from "./MenuBar";
 
 type PostEditorProps = {
@@ -112,7 +111,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
                 onClick={onButtonClearImageClick}
                 className="top-3 right-6 indicator-item badge cursor-pointer badge-secondary hover:bg-secondary-focus"
               >
-                <CloseIcon />
+                <i className="ri-close-line" />
               </label>
               <Image
                 src={postImage}

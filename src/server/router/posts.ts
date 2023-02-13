@@ -37,40 +37,14 @@ export const postRouter = createRouter()
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
       const postResult = await ctx.prisma.post.findFirst({
-        //TODO: Rewrite it to one query in raw sql
         where: { id: input.postId },
         include: {
           likes: {
             where: { postId: input.postId, userId },
             take: 1,
           },
-          comments: {
-            include: {
-              user: true,
-              childrenComments: {
-                include: { user: true },
-                orderBy: { createdAt: "asc" },
-              },
-            },
-            where: { mainCommentId: null },
-            orderBy: { createdAt: "asc" },
-          },
         },
       });
-      // if (postResult) {
-      //   const comments = await Promise.all(
-      //     postResult?.comments.map(async (comment) => {
-      //       return ctx.prisma.comment.findMany({
-      //         where: { mainCommentId: comment.id },
-      //         include: { user: true },
-      //         orderBy: { createdAt: "asc" },
-      //       });
-      //     })
-      //   );
-      // }
-
-      // const firstChildComment = await ctx.prisma.comment.findMany({})
-      console.log(postResult);
 
       return postResult;
     },

@@ -1,6 +1,5 @@
-import { useIsAuth } from "../../hooks/useIsAuth";
+import { useIsAuthCheck } from "../../hooks/useIsAuth";
 import { trpc } from "../../utils/trpc";
-import { ChevronDownIcon, ChevronUpIcon, MessageBubbleIcon } from "../Svg";
 
 type PostFooterProps = {
   postId: string;
@@ -17,11 +16,11 @@ const PostFooter: React.FC<PostFooterProps> = ({
   commentsCount,
   like,
 }) => {
-  const checkIsAuth = useIsAuth("");
+  const checkIsAuth = useIsAuthCheck("");
 
   const utils = trpc.useContext();
 
-  const createLike = trpc.useMutation(["post.like"], {
+  const createLikeMutation = trpc.useMutation(["post.like"], {
     onSuccess() {
       utils.invalidateQueries(["post.posts"]);
     },
@@ -29,7 +28,7 @@ const PostFooter: React.FC<PostFooterProps> = ({
 
   const changeLikeForPost = async (isPositive: boolean) => {
     checkIsAuth();
-    await createLike.mutateAsync({
+    await createLikeMutation.mutateAsync({
       isPositive,
       postId: postId,
     });
@@ -41,15 +40,15 @@ const PostFooter: React.FC<PostFooterProps> = ({
   return (
     <div className="flex p-4 items-center border-1 border-black ">
       <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
-        <MessageBubbleIcon />
+        <i className="ri-chat-1-line" />
         <span>{commentsCount}</span>
       </div>
       <div className="ml-auto flex items-center">
-        <ChevronDownIcon
+        <i
           onClick={() => {
             changeLikeForPost(false);
           }}
-          className={`${
+          className={`ri-pencil-line ${
             likeIsNegative
               ? "text-red-700"
               : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
@@ -57,11 +56,11 @@ const PostFooter: React.FC<PostFooterProps> = ({
           cursor-pointer`}
         />
         <span>{likesValue}</span>
-        <ChevronUpIcon
+        <i
           onClick={async () => {
             changeLikeForPost(true);
           }}
-          className={`${
+          className={`ri-arrow-down-s-line ${
             likeIsPositive
               ? "text-green-700"
               : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"

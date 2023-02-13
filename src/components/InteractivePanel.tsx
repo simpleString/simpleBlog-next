@@ -1,68 +1,66 @@
-import { Comment, Like, Post, User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
-import router from "next/router";
-import { getBaseUrl } from "../pages/_app";
-import { trpc } from "../utils/trpc";
+import { useIsAuthCheck } from "../hooks/useIsAuth";
+import { inferQueryOutput, trpc } from "../utils/trpc";
 
 type InteractivePanelProps = {
-  post:
-    | (Post & {
-        likes: Like[];
-        comments: (Comment & {
-          user: User;
-        })[];
-      })
-    | null
-    | undefined;
+  post: Exclude<inferQueryOutput<"post.post">, null>;
+  isShowEditSection?: boolean;
+  callbackUrl: string;
 };
 
-const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
+const InteractivePanel: React.FC<InteractivePanelProps> = ({
+  post,
+  isShowEditSection = false,
+  callbackUrl,
+}) => {
   const session = useSession();
   const utils = trpc.useContext();
+  const checkIsAuth = useIsAuthCheck(callbackUrl);
 
-  const createLike = trpc.useMutation(["post.like"], {
+  const createLikeMutation = trpc.useMutation(["post.like"], {
     onSuccess() {
       utils.invalidateQueries(["post.post"]);
+      utils.invalidateQueries(["post.posts"]);
     },
   });
 
+  const changeLikeForPost = async (isPositive: boolean) => {
+    checkIsAuth();
+    await createLikeMutation.mutateAsync({
+      isPositive,
+      postId: post.id,
+    });
+  };
+
+  const isUserOwner = session.data?.user?.id;
+  const likeIsNegative =
+    post.likes[0]?.isPositive !== null && !post.likes[0]?.isPositive;
+  const likeIsPositive =
+    post.likes[0]?.isPositive !== null && post.likes[0]?.isPositive;
+
   return (
-    <div className="flex p-4 items-center">
-      <div className="motion-safe:hover:scale-105 duration-500 flex items-center group">
-        <i className="ri-chat-1-line mr-2 group-hover:fill-current" />
+    <div className="flex p-4 pb-2">
+      <div className="motion-safe:hover:scale-110 duration-500 flex group space-x-1 hover:text-primary">
+        <i className="ri-chat-1-line" />
         <span>{post?.commentsCount}</span>
       </div>
-      {post?.userId === session.data?.user?.id ? (
+      {isUserOwner && isShowEditSection && (
         <NextLink
           href={{ pathname: "/update-post", query: { id: post?.id } }}
           passHref
         >
-          <div className="ml-auto motion-safe:hover:scale-105 duration-500 text-center group cursor-pointer">
-            <a>Edit</a>
-            <i className="ml-2 inline-block ri-pencil-line" />
+          <div className="ml-auto motion-safe:hover:scale-110 duration-500 cursor-pointer flex space-x-1">
+            <span>Edit</span>
+            <i className="ri-pencil-line" />
           </div>
         </NextLink>
-      ) : null}
+      )}
       <div className="ml-auto flex items-center">
         <i
-          onClick={async () => {
-            if (session.status !== "authenticated") {
-              router.push(
-                "/api/auth/signin?error=SessionRequired&callbackUrl=" +
-                  getBaseUrl() +
-                  "/post/" +
-                  post?.id
-              );
-            } else if (session.status === "authenticated" && post) {
-              await createLike.mutateAsync({
-                isPositive: false,
-                postId: post.id,
-              });
-            }
-          }}
+          onClick={() => changeLikeForPost(false)}
           className={`${
-            !post?.likes[0]?.isPositive && post?.likes[0]?.isPositive !== null
+            likeIsNegative
               ? "text-red-700"
               : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
           }
@@ -70,23 +68,9 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({ post }) => {
         />
         <span>{post?.likesValue}</span>
         <i
-          onClick={async () => {
-            if (session.status !== "authenticated") {
-              router.push(
-                "/api/auth/signin?error=SessionRequired&callbackUrl=" +
-                  getBaseUrl() +
-                  "/post/" +
-                  post?.id
-              );
-            } else if (session.status === "authenticated" && post) {
-              await createLike.mutateAsync({
-                isPositive: true,
-                postId: post.id,
-              });
-            }
-          }}
+          onClick={() => changeLikeForPost(true)}
           className={`${
-            post?.likes[0]?.isPositive
+            likeIsPositive
               ? "text-green-700"
               : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
           }

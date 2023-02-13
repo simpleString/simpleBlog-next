@@ -4,12 +4,12 @@ import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
 export const commentRouter = createRouter()
-  .query("getCommentByPostId", {
+  .query("getCommentsByPostId", {
     input: z.object({ postId: z.string().cuid() }),
     resolve({ ctx, input }) {
       return ctx.prisma.comment.findMany({
         where: { postId: input.postId, mainCommentId: null },
-        include: { user: true, childrenComments: { include: { user: true } } },
+        include: { user: true },
       });
     },
   })
@@ -17,12 +17,15 @@ export const commentRouter = createRouter()
     input: z.object({
       mainCommentId: z.string().cuid(),
     }),
-    resolve({ input, ctx }) {
-      return ctx.prisma.comment.findMany({
+    async resolve({ input, ctx }) {
+      const data = await ctx.prisma.comment.findMany({
         where: { mainCommentId: input.mainCommentId },
         include: { user: true },
         orderBy: { createdAt: "asc" },
       });
+
+      console.log(data);
+      return data;
     },
   })
   .merge(
