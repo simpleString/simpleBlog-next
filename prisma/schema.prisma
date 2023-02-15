@@ -15,35 +15,18 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
-model Community {
-  id          String @id @default(cuid())
-  title       String @unique
-  description String
-  img         String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userCount Int @default(1)
-
-  users User[]
-  post  Post[]
-}
-
 model Post {
-  id     String  @id @default(cuid())
+  id     String @id @default(cuid())
   title  String
-  text   String  @db.Text
+  text   String @db.Text
   image  String
   userId String
-  user   User    @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   likes         Like[]
   likesValue    Int        @default(0)
   commentsCount Int        @default(0)
   comments      Comment[]
-  communityId   String?
-  community     Community? @relation(fields: [communityId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -61,10 +44,23 @@ model Comment {
   mainComment      Comment?  @relation("CommentsChain", fields: [mainCommentId], references: [id])
   childrenComments Comment[] @relation("CommentsChain")
   childrenCount    Int       @default(0)
+  commentLikes CommentLike[]
+  commentLikesValue Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model CommentLike {
+  isPositive Boolean?
+  comment Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  @@id([commentId, userId])
+}
+
 
 model Like {
   isPositive Boolean?
@@ -115,7 +111,7 @@ model User {
   posts       Post[]
   likes       Like[]
   comments    Comment[]
-  communities Community[]
+  commentLikes CommentLike[]
 }
 
 model VerificationToken {

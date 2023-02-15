@@ -8,11 +8,13 @@ import LoadingSpinner from "./LoadingSpinner";
 type CommentSectionProps = {
   postId: string;
   callbackUrl: string;
+  postCommentsCount: number;
 };
 
 const CommentSection: React.FC<CommentSectionProps> = ({
   postId,
   callbackUrl,
+  postCommentsCount,
 }) => {
   const checkIsAuth = useIsAuthCheck(callbackUrl);
   const utils = trpc.useContext();
@@ -61,7 +63,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           </button>
         </div>
       </div>
-      <div className="">
+      <div>
+        <div>
+          <p>{postCommentsCount} comments</p>
+        </div>
         {comments.map((comment) => (
           <div key={comment.id} className="p-2  shadow ">
             <CommentRow

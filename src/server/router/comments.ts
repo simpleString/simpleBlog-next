@@ -9,7 +9,7 @@ export const commentRouter = createRouter()
     resolve({ ctx, input }) {
       return ctx.prisma.comment.findMany({
         where: { postId: input.postId, mainCommentId: null },
-        include: { user: true },
+        include: { user: true, commentLikes: true },
       });
     },
   })
@@ -20,11 +20,11 @@ export const commentRouter = createRouter()
     async resolve({ input, ctx }) {
       const data = await ctx.prisma.comment.findMany({
         where: { mainCommentId: input.mainCommentId },
-        include: { user: true },
+        include: { user: true, commentLikes: true },
         orderBy: { createdAt: "asc" },
       });
 
-      console.log(data);
+      console.log(data[0]?.commentLikes[0]?.isPositive);
       return data;
     },
   })
@@ -88,6 +88,94 @@ export const commentRouter = createRouter()
             },
             data: {
               text: input.text,
+            },
+          });
+        },
+      })
+      .mutation("like", {
+        input: z.object({
+          commentId: z.string().cuid(),
+          isPositive: z.boolean(),
+        }),
+        async resolve({ input, ctx }) {
+          const like = await ctx.prisma.commentLike.findFirst({
+            where: { commentId: input.commentId, userId: ctx.session.user.id },
+          });
+
+          if (like) {
+            if (input.isPositive === like.isPositive) {
+              return ctx.prisma.commentLike.update({
+                where: {
+                  commentId_userId: {
+                    commentId: input.commentId,
+                    userId: ctx.session.user.id,
+                  },
+                },
+                data: {
+                  isPositive: null,
+                  comment: {
+                    update: {
+                      commentLikesValue: {
+                        increment: input.isPositive ? -1 : 1,
+                      },
+                    },
+                  },
+                },
+              });
+            } else if (like.isPositive === null) {
+              return ctx.prisma.commentLike.update({
+                where: {
+                  commentId_userId: {
+                    commentId: input.commentId,
+                    userId: ctx.session.user.id,
+                  },
+                },
+                data: {
+                  isPositive: input.isPositive,
+                  comment: {
+                    update: {
+                      commentLikesValue: {
+                        increment: input.isPositive ? 1 : -1,
+                      },
+                    },
+                  },
+                },
+              });
+            } else {
+              const updateLikesValue = like.isPositive ? -2 : 2;
+              return ctx.prisma.commentLike.update({
+                where: {
+                  commentId_userId: {
+                    commentId: input.commentId,
+                    userId: ctx.session.user.id,
+                  },
+                },
+                data: {
+                  isPositive: !like.isPositive,
+                  comment: {
+                    update: {
+                      commentLikesValue: { increment: updateLikesValue },
+                    },
+                  },
+                },
+              });
+            }
+          }
+
+          return ctx.prisma.comment.update({
+            where: {
+              id: input.commentId,
+            },
+            data: {
+              commentLikesValue: {
+                increment: input.isPositive ? +input.isPositive : -1,
+              },
+              commentLikes: {
+                create: {
+                  isPositive: input.isPositive,
+                  userId: ctx.session.user.id,
+                },
+              },
             },
           });
         },

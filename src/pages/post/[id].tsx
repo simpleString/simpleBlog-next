@@ -52,6 +52,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
       <CommentSection
         postId={postQuery.data.id}
         callbackUrl={`/post/${postQuery.data.id}`}
+        postCommentsCount={postQuery.data.commentsCount}
       />
     </div>
   );

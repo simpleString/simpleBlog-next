@@ -34,10 +34,13 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   };
 
   const isUserOwner = session.data?.user?.id;
-  const likeIsNegative =
-    post.likes[0]?.isPositive !== null && !post.likes[0]?.isPositive;
-  const likeIsPositive =
-    post.likes[0]?.isPositive !== null && post.likes[0]?.isPositive;
+  const likeIsNegative = post.likes[0] && !post.likes[0].isPositive;
+  const likeIsPositive = post.likes[0] && post.likes[0].isPositive;
+
+  console.log(post.likes[0]);
+
+  console.log("is nagative " + likeIsNegative);
+  console.log("is positive " + likeIsPositive);
 
   return (
     <div className="flex p-4 pb-2">
