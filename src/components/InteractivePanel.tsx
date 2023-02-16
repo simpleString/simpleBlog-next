@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { inferQueryOutput, trpc } from "../utils/trpc";
+import LikeControlComponent from "./LikeControlComponent";
 
 type InteractivePanelProps = {
   post: Exclude<inferQueryOutput<"post.post">, null>;
@@ -34,13 +35,6 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   };
 
   const isUserOwner = session.data?.user?.id;
-  const likeIsNegative = post.likes[0] && !post.likes[0].isPositive;
-  const likeIsPositive = post.likes[0] && post.likes[0].isPositive;
-
-  console.log(post.likes[0]);
-
-  console.log("is nagative " + likeIsNegative);
-  console.log("is positive " + likeIsPositive);
 
   return (
     <div className="flex p-4 pb-2">
@@ -59,27 +53,12 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
           </div>
         </NextLink>
       )}
-      <div className="ml-auto flex items-center">
-        <i
-          onClick={() => changeLikeForPost(false)}
-          className={`${
-            likeIsNegative
-              ? "text-red-700"
-              : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
-          }
-         cursor-pointer ri-arrow-down-s-line`}
-        />
-        <span>{post?.likesValue}</span>
-        <i
-          onClick={() => changeLikeForPost(true)}
-          className={`${
-            likeIsPositive
-              ? "text-green-700"
-              : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
-          }
-        cursor-pointer ri-arrow-up-s-line`}
-        />
-      </div>
+      <LikeControlComponent
+        callbackFn={changeLikeForPost}
+        likeValue={post.likes[0]?.isPositive}
+        likesCount={post.likesValue}
+        className="ml-auto"
+      />
     </div>
   );
 };

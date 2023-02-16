@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { trpc } from "../utils/trpc";
-import CommentRow from "./CommentRow";
+import { CommentRowMemo } from "./CommentRow";
 import CustomTextarea from "./custom/CustomTextarea";
 import LoadingSpinner from "./LoadingSpinner";
 
@@ -69,7 +69,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         </div>
         {comments.map((comment) => (
           <div key={comment.id} className="p-2  shadow ">
-            <CommentRow
+            <CommentRowMemo
               comment={comment}
               callbackUrl={"/post/" + comment.postId}
               openComments={true}

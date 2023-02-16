@@ -52,7 +52,7 @@ model Comment {
 }
 
 model CommentLike {
-  isPositive Boolean?
+  isPositive Int @default(0)
   comment Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -63,7 +63,7 @@ model CommentLike {
 
 
 model Like {
-  isPositive Boolean?
+  isPositive Int @default(0)
   post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)

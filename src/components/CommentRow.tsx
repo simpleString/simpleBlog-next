@@ -2,8 +2,10 @@ import { useSession } from "next-auth/react";
 import NextImage from "next/image";
 import { ChangeEvent, memo, useEffect, useState } from "react";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
+import { getLikeValue } from "../utils/getLikeValue";
 import { inferQueryOutput, trpc } from "../utils/trpc";
 import CustomTextarea from "./custom/CustomTextarea";
+import LikeControlComponent from "./LikeControlComponent";
 
 type CommentRowProps = {
   comment: inferQueryOutput<"comment.getCommentsByPostId">[0];
@@ -40,6 +42,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
   // Open first inner comments for user comport by default
   const [isChildrenOpen, setIsChildrenOpen] = useState(false);
+  const [likeValue, setLiveValue] = useState(0);
 
   useEffect(() => {
     setIsChildrenOpen(openComments);
@@ -87,6 +90,52 @@ const CommentRow: React.FC<CommentRowProps> = ({
   });
 
   const createLikeMutation = trpc.useMutation(["comment.like"], {
+    onMutate: async (likeData) => {
+      const likesValuesObject = getLikeValue({
+        previousLikeValue: comment.commentLikes[0]?.isPositive,
+        inputLikeBooleanValue: likeData.isPositive,
+      });
+
+      if (comment.mainCommentId) {
+        utils.cancelQuery([
+          "comment.getAllCommentsByMainCommentId",
+          { mainCommentId: comment.mainCommentId },
+        ]);
+
+        const previousComments = utils.getQueryData([
+          "comment.getAllCommentsByMainCommentId",
+          { mainCommentId: comment.mainCommentId },
+        ]);
+        if (!previousComments) return;
+        const optimisticUpdatedComments = previousComments.map((comment) => {
+          if (comment.id === likeData.commentId) {
+            if (comment.commentLikes[0]) {
+              comment.commentLikes[0].isPositive = likesValuesObject.likeValue;
+              comment.commentLikesValue += likesValuesObject.likeValueChange;
+            }
+          }
+          return comment;
+        });
+
+        console.log(optimisticUpdatedComments);
+
+        utils.setQueryData(
+          [
+            "comment.getAllCommentsByMainCommentId",
+            { mainCommentId: comment.mainCommentId },
+          ],
+          () => [...optimisticUpdatedComments]
+        );
+
+        return { previousComments };
+      } else {
+        utils.invalidateQueries([
+          "comment.getCommentsByPostId",
+          { postId: comment.postId },
+        ]);
+      }
+    },
+
     onSuccess() {
       if (comment.mainCommentId) {
         utils.refetchQueries([
@@ -168,7 +217,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
   const changeLikeForComment = async (isPositive: boolean) => {
     checkIsAuth();
-    await createLikeMutation.mutateAsync({
+    createLikeMutation.mutate({
       commentId: comment.id,
       isPositive,
     });
@@ -178,19 +227,6 @@ const CommentRow: React.FC<CommentRowProps> = ({
   const isInEditableMode = editableComment.index === comment.id;
   const isInReplayMode = replyComment.index === comment.id;
   const isCommentHaveChildren = !!comment.childrenCount;
-
-  const likeIsNegative =
-    comment.commentLikes[0] && !comment.commentLikes[0].isPositive;
-  const likeIsPositive =
-    comment.commentLikes[0] && comment.commentLikes[0].isPositive;
-
-  console.log("is nagative " + likeIsNegative);
-  console.log("is positive " + likeIsPositive);
-
-  console.log("is children open " + isChildrenOpen);
-  console.log("is show " + isShow);
-
-  const CommentRowMemeo = memo(CommentRow);
 
   return (
     <div className="relative">
@@ -243,27 +279,11 @@ const CommentRow: React.FC<CommentRowProps> = ({
             )}
 
             <div className="flex gap-2">
-              <div className=" flex items-center">
-                <i
-                  onClick={() => changeLikeForComment(false)}
-                  className={`${
-                    likeIsNegative
-                      ? "text-red-700"
-                      : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
-                  }
-         cursor-pointer ri-arrow-down-s-line text-xl`}
-                />
-                <span>{comment.commentLikesValue}</span>
-                <i
-                  onClick={() => changeLikeForComment(true)}
-                  className={`${
-                    likeIsPositive
-                      ? "text-green-700"
-                      : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
-                  }
-        cursor-pointer ri-arrow-up-s-line text-xl`}
-                />
-              </div>
+              <LikeControlComponent
+                callbackFn={changeLikeForComment}
+                likeValue={comment.commentLikes[0]?.isPositive}
+                likesCount={comment.commentLikesValue}
+              />
               <span className="cursor-pointer " onClick={toggleReplyMode}>
                 Reply
               </span>
@@ -295,11 +315,10 @@ const CommentRow: React.FC<CommentRowProps> = ({
       )}
       {commentsQuery.data?.map((comment) => (
         <div className="ml-8" key={comment.id}>
-          <CommentRowMemeo
+          <CommentRowMemo
             comment={comment}
             callbackUrl={callbackUrl}
             isShow={isChildrenOpen && isShow}
-            openComments={isChildrenOpen}
           />
         </div>
       ))}
@@ -307,4 +326,5 @@ const CommentRow: React.FC<CommentRowProps> = ({
   );
 };
 
+export const CommentRowMemo = memo(CommentRow);
 export default CommentRow;

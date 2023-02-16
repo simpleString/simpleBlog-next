@@ -14,6 +14,7 @@ export const postRouter = createRouter()
       });
     },
   })
+
   .query("search", {
     input: z.object({
       query: z.string(),
@@ -28,6 +29,7 @@ export const postRouter = createRouter()
       });
     },
   })
+
   .query("post", {
     input: z.object({
       postId: z.string().cuid(),
@@ -49,6 +51,7 @@ export const postRouter = createRouter()
       return postResult;
     },
   })
+
   .merge(
     "",
     createProtectedRouter()
@@ -63,77 +66,67 @@ export const postRouter = createRouter()
           });
 
           if (like) {
-            if (input.isPositive === like.isPositive) {
-              return ctx.prisma.like.update({
-                where: {
-                  postId_userId: {
-                    postId: input.postId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: null,
-                  post: {
-                    update: {
-                      likesValue: { increment: input.isPositive ? -1 : 1 },
-                    },
-                  },
-                },
-              });
-            } else if (like.isPositive === null) {
-              return ctx.prisma.like.update({
-                where: {
-                  postId_userId: {
-                    postId: input.postId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: input.isPositive,
-                  post: {
-                    update: {
-                      likesValue: { increment: input.isPositive ? 1 : -1 },
-                    },
-                  },
-                },
-              });
+            let likeValueChange = 0;
+            let likeValue = 0;
+            if (input.isPositive) {
+              if (like.isPositive === 1) {
+                likeValue = 0;
+                likeValueChange = -1;
+              } else if (like.isPositive === 0) {
+                likeValue = 1;
+                likeValueChange = 1;
+              } else {
+                likeValue = 1;
+                likeValueChange = 2;
+              }
             } else {
-              const updateLikesValue = like.isPositive ? -2 : 2;
-              return ctx.prisma.like.update({
-                where: {
-                  postId_userId: {
-                    postId: input.postId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: !like.isPositive,
-                  post: {
-                    update: { likesValue: { increment: updateLikesValue } },
-                  },
-                },
-              });
+              if (like.isPositive === 1) {
+                likeValue = -1;
+                likeValueChange = -2;
+              } else if (like.isPositive === 0) {
+                likeValue = -1;
+                likeValueChange = -1;
+              } else {
+                likeValue = 0;
+                likeValueChange = 1;
+              }
             }
-          }
 
-          return ctx.prisma.post.update({
-            where: {
-              id: input.postId,
-            },
-            data: {
-              likesValue: {
-                increment: input.isPositive ? +input.isPositive : -1,
-              },
-              likes: {
-                create: {
-                  isPositive: input.isPositive,
+            return ctx.prisma.like.update({
+              where: {
+                postId_userId: {
+                  postId: input.postId,
                   userId: ctx.session.user.id,
                 },
               },
-            },
-          });
+              data: {
+                isPositive: likeValue,
+                post: {
+                  update: {
+                    likesValue: { increment: likeValueChange },
+                  },
+                },
+              },
+            });
+          } else {
+            return ctx.prisma.post.update({
+              where: {
+                id: input.postId,
+              },
+              data: {
+                likesValue: { increment: input.isPositive ? 1 : -1 },
+                likes: {
+                  create: {
+                    isPositive: input.isPositive ? 1 : -1,
+                    userId: ctx.session.user.id,
+                  },
+                },
+              },
+            });
+          }
         },
       })
+
       .mutation("createPost", {
         input: z.object({
           title: z.string().min(5),

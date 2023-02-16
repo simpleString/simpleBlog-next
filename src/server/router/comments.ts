@@ -24,7 +24,6 @@ export const commentRouter = createRouter()
         orderBy: { createdAt: "asc" },
       });
 
-      console.log(data[0]?.commentLikes[0]?.isPositive);
       return data;
     },
   })
@@ -102,82 +101,147 @@ export const commentRouter = createRouter()
             where: { commentId: input.commentId, userId: ctx.session.user.id },
           });
 
-          if (like) {
-            if (input.isPositive === like.isPositive) {
-              return ctx.prisma.commentLike.update({
-                where: {
-                  commentId_userId: {
-                    commentId: input.commentId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: null,
-                  comment: {
-                    update: {
-                      commentLikesValue: {
-                        increment: input.isPositive ? -1 : 1,
-                      },
-                    },
-                  },
-                },
-              });
-            } else if (like.isPositive === null) {
-              return ctx.prisma.commentLike.update({
-                where: {
-                  commentId_userId: {
-                    commentId: input.commentId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: input.isPositive,
-                  comment: {
-                    update: {
-                      commentLikesValue: {
-                        increment: input.isPositive ? 1 : -1,
-                      },
-                    },
-                  },
-                },
-              });
-            } else {
-              const updateLikesValue = like.isPositive ? -2 : 2;
-              return ctx.prisma.commentLike.update({
-                where: {
-                  commentId_userId: {
-                    commentId: input.commentId,
-                    userId: ctx.session.user.id,
-                  },
-                },
-                data: {
-                  isPositive: !like.isPositive,
-                  comment: {
-                    update: {
-                      commentLikesValue: { increment: updateLikesValue },
-                    },
-                  },
-                },
-              });
-            }
-          }
+          console.log(input);
 
-          return ctx.prisma.comment.update({
-            where: {
-              id: input.commentId,
-            },
-            data: {
-              commentLikesValue: {
-                increment: input.isPositive ? +input.isPositive : -1,
-              },
-              commentLikes: {
-                create: {
-                  isPositive: input.isPositive,
+          if (like) {
+            let likeValueChange = 0;
+            let likeValue = 0;
+            if (input.isPositive) {
+              if (like.isPositive === 1) {
+                likeValue = 0;
+                likeValueChange = -1;
+              } else if (like.isPositive === 0) {
+                likeValue = 1;
+                likeValueChange = 1;
+              } else if (like.isPositive === -1) {
+                likeValue = 1;
+                likeValueChange = 2;
+              }
+            } else {
+              if (like.isPositive === 1) {
+                likeValue = -1;
+                likeValueChange = -2;
+              } else if (like.isPositive === 0) {
+                likeValue = -1;
+                likeValueChange = -1;
+              } else if (like.isPositive === -1) {
+                likeValue = 0;
+                likeValueChange = 1;
+              }
+            }
+
+            console.log(like);
+            console.log(likeValueChange);
+
+            return await ctx.prisma.commentLike.update({
+              where: {
+                commentId_userId: {
+                  commentId: input.commentId,
                   userId: ctx.session.user.id,
                 },
               },
-            },
-          });
+              data: {
+                isPositive: likeValue,
+                comment: {
+                  update: {
+                    commentLikesValue: { increment: likeValueChange },
+                  },
+                },
+              },
+            });
+          } else {
+            return ctx.prisma.comment.update({
+              where: {
+                id: input.commentId,
+              },
+              data: {
+                commentLikesValue: { increment: input.isPositive ? 1 : -1 },
+                commentLikes: {
+                  create: {
+                    isPositive: input.isPositive ? 1 : -1,
+                    userId: ctx.session.user.id,
+                  },
+                },
+              },
+            });
+          }
+
+          // if (like) {
+          //   if (input.isPositive === like.isPositive) {
+          //     return ctx.prisma.commentLike.update({
+          //       where: {
+          //         commentId_userId: {
+          //           commentId: input.commentId,
+          //           userId: ctx.session.user.id,
+          //         },
+          //       },
+          //       data: {
+          //         isPositive: null,
+          //         comment: {
+          //           update: {
+          //             commentLikesValue: {
+          //               increment: input.isPositive ? -1 : 1,
+          //             },
+          //           },
+          //         },
+          //       },
+          //     });
+          //   } else if (like.isPositive === null) {
+          //     return ctx.prisma.commentLike.update({
+          //       where: {
+          //         commentId_userId: {
+          //           commentId: input.commentId,
+          //           userId: ctx.session.user.id,
+          //         },
+          //       },
+          //       data: {
+          //         isPositive: input.isPositive,
+          //         comment: {
+          //           update: {
+          //             commentLikesValue: {
+          //               increment: input.isPositive ? 1 : -1,
+          //             },
+          //           },
+          //         },
+          //       },
+          //     });
+          //   } else {
+          //     const updateLikesValue = like.isPositive ? -2 : 2;
+          //     return ctx.prisma.commentLike.update({
+          //       where: {
+          //         commentId_userId: {
+          //           commentId: input.commentId,
+          //           userId: ctx.session.user.id,
+          //         },
+          //       },
+          //       data: {
+          //         isPositive: !like.isPositive,
+          //         comment: {
+          //           update: {
+          //             commentLikesValue: { increment: updateLikesValue },
+          //           },
+          //         },
+          //       },
+          //     });
+          //   }
+          // }
+
+          // return ctx.prisma.comment.update({
+          //   where: {
+          //     id: input.commentId,
+          //   },
+          //   data: {
+          //     commentLikesValue: {
+          //       increment: input.isPositive ? +input.isPositive : -1,
+          //     },
+          //     commentLikes: {
+          //       create: {
+          //         isPositive: input.isPositive,
+          //         userId: ctx.session.user.id,
+          //       },
+          //     },
+          //   },
+          // });
         },
       })
   );
