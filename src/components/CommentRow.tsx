@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, memo, useEffect, useState } from "react";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { inferQueryOutput, trpc } from "../utils/trpc";
 import CustomTextarea from "./custom/CustomTextarea";
@@ -39,7 +39,11 @@ const CommentRow: React.FC<CommentRowProps> = ({
   });
 
   // Open first inner comments for user comport by default
-  const [isChildrenOpen, setIsChildrenOpen] = useState(openComments);
+  const [isChildrenOpen, setIsChildrenOpen] = useState(false);
+
+  useEffect(() => {
+    setIsChildrenOpen(openComments);
+  }, [openComments]);
 
   const commentsQuery = trpc.useQuery(
     ["comment.getAllCommentsByMainCommentId", { mainCommentId: comment.id }],
@@ -180,6 +184,14 @@ const CommentRow: React.FC<CommentRowProps> = ({
   const likeIsPositive =
     comment.commentLikes[0] && comment.commentLikes[0].isPositive;
 
+  console.log("is nagative " + likeIsNegative);
+  console.log("is positive " + likeIsPositive);
+
+  console.log("is children open " + isChildrenOpen);
+  console.log("is show " + isShow);
+
+  const CommentRowMemeo = memo(CommentRow);
+
   return (
     <div className="relative">
       {isShow && (
@@ -283,10 +295,11 @@ const CommentRow: React.FC<CommentRowProps> = ({
       )}
       {commentsQuery.data?.map((comment) => (
         <div className="ml-8" key={comment.id}>
-          <CommentRow
+          <CommentRowMemeo
             comment={comment}
             callbackUrl={callbackUrl}
             isShow={isChildrenOpen && isShow}
+            openComments={isChildrenOpen}
           />
         </div>
       ))}

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { trpc } from "../../utils/trpc";
 import IconMenu from "./IconMenu";
 import Logo from "./Logo";
-import MenuButton from "./MenuButton";
 import MobileNavBarSearch from "./MobileNavBarSearch";
 import NavBarSearch from "./NavBarSearch";
 
@@ -17,7 +16,6 @@ const NavBar: React.FC = () => {
     <nav className="relative">
       <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur shadow">
         <div className="navbar-start">
-          <MenuButton />
           <Logo />
         </div>
 
