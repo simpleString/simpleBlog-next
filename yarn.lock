@@ -3256,6 +3256,13 @@ tr46@~0.0.3:
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
+trpc-client-devtools-link@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/trpc-client-devtools-link/-/trpc-client-devtools-link-0.1.1.tgz#dc318245fc9e9035cbbba33621ece17a2d02a781"
+  integrity sha512-/KXczcvdbd0TVjj4Tm3irFi3hyxYwUtJ038v0rN9taxmFkkTO2nHnu/aKXBLFUopxmFuHQuIzBN7Nse3eWVT1w==
+  dependencies:
+    superjson "^1.9.1"
+
 tsconfig-paths@^3.14.1:
   version "3.14.1"
   resolved "https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.14.1.tgz#ba0734599e8ea36c862798e920bcf163277b137a"

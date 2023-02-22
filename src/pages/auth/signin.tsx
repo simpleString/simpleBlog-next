@@ -1,7 +1,6 @@
 import { InferGetServerSidePropsType } from "next";
 import { getProviders, signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import CustomButton from "../../components/custom/CustomButton";
 import NextLink from "next/link";
 
 const Signin: React.FC<
@@ -19,9 +18,9 @@ const Signin: React.FC<
           </NextLink>
         </div>
         <div key={providers?.google.id} className="flex justify-center">
-          <CustomButton
+          <button
             onClick={() => signIn(providers?.google.id, { callbackUrl })}
-            className="flex items-center py-2 border-blue-600 border-2"
+            className="flex items-center btn btn-outline"
           >
             <svg
               version="1.1"
@@ -53,8 +52,8 @@ const Signin: React.FC<
                 <path fill="none" d="M0 0h48v48H0z"></path>
               </g>
             </svg>
-            Sign in with {providers?.google.name}
-          </CustomButton>
+            <span>Sign in with {providers?.google.name}</span>
+          </button>
         </div>
       </div>
     </div>

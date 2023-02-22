@@ -19,14 +19,19 @@ export const postRouter = createRouter()
     input: z.object({
       query: z.string(),
     }),
-    resolve({ ctx, input }) {
+    async resolve({ ctx, input }) {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-      return ctx.prisma.post.findMany({
+      const posts = await ctx.prisma.post.findMany({
         include: { user: true, likes: { where: { userId } } },
         where: { title: { contains: input.query } },
         orderBy: { createdAt: "desc" },
       });
+
+      return posts.map((post) => ({
+        ...post,
+        likedByMe: post.likes[0]?.isPositive,
+      }));
     },
   })
 
@@ -48,7 +53,11 @@ export const postRouter = createRouter()
         },
       });
 
-      return postResult;
+      if (!postResult) return postResult;
+      return {
+        ...postResult,
+        likedByMe: postResult?.likes[0]?.isPositive,
+      };
     },
   })
 

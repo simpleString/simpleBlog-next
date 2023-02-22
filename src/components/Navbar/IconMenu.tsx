@@ -10,8 +10,9 @@ type IconMenuProps = {
 const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
   return (
     <Dropdown
+      dropdownClasses="dropdown-end"
       buttonComponentClasses="btn btn-ghost btn-circle avatar"
-      childrenClasses="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52"
+      childrenClasses=""
       buttonComponent={
         <div className="w-10 rounded-full">
           <NextImage

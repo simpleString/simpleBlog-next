@@ -6,6 +6,7 @@ type DropdownProps = {
   children: ReactNode;
   childrenClasses?: string;
   buttonComponentClasses?: string;
+  dropdownClasses?: string;
 };
 
 const Dropdown: React.FC<DropdownProps> = ({
@@ -13,6 +14,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   children,
   childrenClasses,
   buttonComponentClasses,
+  dropdownClasses,
 }) => {
   const [menuOpened, setMenuOpened] = useState(false);
   const menu = useRef<HTMLDivElement>(null);
@@ -21,7 +23,6 @@ const Dropdown: React.FC<DropdownProps> = ({
   useEffect(() => {
     if (!menuOpened) {
       if (document.activeElement instanceof HTMLElement) {
-        console.log("state work");
         document.activeElement.blur();
       }
     } else if (menuOpened && !menu.current?.contains(document.activeElement)) {
@@ -30,11 +31,11 @@ const Dropdown: React.FC<DropdownProps> = ({
   }, [menuOpened]);
 
   return (
-    <div ref={menu} className="dropdown dropdown-end">
+    <div ref={menu} className={twMerge("dropdown", dropdownClasses)}>
       <div
         ref={menuButton}
         tabIndex={0}
-        className={twMerge("btn btn-square btn-ghost", buttonComponentClasses)}
+        className={twMerge("", buttonComponentClasses)}
         onBlur={() => {
           setMenuOpened(false);
         }}
@@ -51,7 +52,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       <ul
         tabIndex={0}
         className={twMerge(
-          "p-2 shadow menu dropdown-content bg-base-100 rounded-box w-52 text-neutral",
+          "p-2 shadow menu dropdown-content bg-base-100 w-52 text-neutral ",
           childrenClasses
         )}
         onBlur={() => {

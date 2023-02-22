@@ -1,14 +1,15 @@
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
 import { ChangeEvent, memo, useEffect, useState } from "react";
-import { useIsAuthCheck } from "../hooks/useIsAuth";
-import { getLikeValue } from "../utils/getLikeValue";
-import { inferQueryOutput, trpc } from "../utils/trpc";
-import CustomTextarea from "./custom/CustomTextarea";
-import LikeControlComponent from "./LikeControlComponent";
+import { useIsAuthCheck } from "../../hooks/useIsAuth";
+import { getLikeValue } from "../../utils/getLikeValue";
+import { inferQueryOutput, trpc } from "../../utils/trpc";
+import CustomTextarea from "../custom/CustomTextarea";
+import LikeControlComponent from "../LikeControlComponent";
 
+type commentType = inferQueryOutput<"comment.getCommentsByPostId">[0];
 type CommentRowProps = {
-  comment: inferQueryOutput<"comment.getCommentsByPostId">[0];
+  comment: commentType;
   callbackUrl: string;
   openComments?: boolean;
   isShow?: boolean;
@@ -42,7 +43,6 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
   // Open first inner comments for user comport by default
   const [isChildrenOpen, setIsChildrenOpen] = useState(false);
-  const [likeValue, setLiveValue] = useState(0);
 
   useEffect(() => {
     setIsChildrenOpen(openComments);
@@ -54,50 +54,70 @@ const CommentRow: React.FC<CommentRowProps> = ({
   );
 
   const updateCommentMutation = trpc.useMutation(["comment.updateComment"], {
-    async onSuccess() {
-      if (comment.mainCommentId) {
-        utils.refetchQueries([
-          "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.mainCommentId },
-        ]);
-      } else {
-        utils.invalidateQueries([
-          "comment.getCommentsByPostId",
-          { postId: comment.postId },
-        ]);
-      }
+    // async onMutate(newData) {
+    //   if (!comment.mainCommentId) return;
+    //   await utils.cancelQuery([
+    //     "comment.getAllCommentsByMainCommentId",
+    //     { mainCommentId: comment.mainCommentId },
+    //   ]);
+    //   const previousValue = utils.getQueryData([
+    //     "comment.getAllCommentsByMainCommentId",
+    //     { mainCommentId: comment.mainCommentId },
+    //   ]);
+
+    //   console.log(newData);
+
+    //   utils.setQueryData(
+    //     [
+    //       "comment.getAllCommentsByMainCommentId",
+    //       { mainCommentId: comment.mainCommentId },
+    //     ],
+    //     (old) => [...old, newTodo]
+    //   );
+
+    //   // Return a context object with the snapshotted value
+    //   return { previousTodos };
+    // },
+
+    // onError() {},
+
+    async onSettled() {
+      //   if (comment.mainCommentId) {
+      //     utils.invalidateQueries([
+      //       "comment.getAllCommentsByMainCommentId",
+      //       { mainCommentId: comment.mainCommentId },
+      //     ]);
+      //   } else {
+      //     utils.invalidateQueries([
+      //       "comment.getCommentsByPostId",
+      //       { postId: comment.postId },
+      //     ]);
+      //   }
     },
-  }); //TODO: Make optimistic update!!!
+  });
 
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     async onSuccess() {
-      commentsQuery.refetch();
-
-      if (comment.mainCommentId) {
-        utils.refetchQueries([
-          "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.mainCommentId },
-        ]);
-      } else {
-        utils.invalidateQueries([
-          "comment.getCommentsByPostId",
-          { postId: comment.postId },
-        ]);
-      }
-
-      setIsChildrenOpen(true);
+      // commentsQuery.refetch();
+      // if (comment.mainCommentId) {
+      //   utils.refetchQueries([
+      //     "comment.getAllCommentsByMainCommentId",
+      //     { mainCommentId: comment.mainCommentId },
+      //   ]);
+      // } else {
+      //   utils.invalidateQueries([
+      //     "comment.getCommentsByPostId",
+      //     { postId: comment.postId },
+      //   ]);
+      // }
+      // setIsChildrenOpen(true);
     },
   });
 
   const createLikeMutation = trpc.useMutation(["comment.like"], {
     onMutate: async (likeData) => {
-      const likesValuesObject = getLikeValue({
-        previousLikeValue: comment.commentLikes[0]?.isPositive,
-        inputLikeBooleanValue: likeData.isPositive,
-      });
-
       if (comment.mainCommentId) {
-        utils.cancelQuery([
+        await utils.cancelQuery([
           "comment.getAllCommentsByMainCommentId",
           { mainCommentId: comment.mainCommentId },
         ]);
@@ -106,47 +126,119 @@ const CommentRow: React.FC<CommentRowProps> = ({
           "comment.getAllCommentsByMainCommentId",
           { mainCommentId: comment.mainCommentId },
         ]);
-        if (!previousComments) return;
-        const optimisticUpdatedComments = previousComments.map((comment) => {
-          if (comment.id === likeData.commentId) {
-            if (comment.commentLikes[0]) {
-              comment.commentLikes[0].isPositive = likesValuesObject.likeValue;
-              comment.commentLikesValue += likesValuesObject.likeValueChange;
-            }
-          }
-          return comment;
-        });
 
-        console.log(optimisticUpdatedComments);
+        if (!previousComments) return;
+
+        const optimisticUpdatedComments = previousComments.map((commentT) => {
+          if (commentT.id === likeData.commentId) {
+            const likesValuesObject = getLikeValue({
+              previousLikeValue: commentT.commentLikes[0]?.isPositive,
+              inputLikeBooleanValue: likeData.isPositive,
+            });
+            console.log("commentLike " + commentT.commentLikes[0]?.isPositive);
+            console.log("comment Likes value " + commentT.commentLikesValue);
+            console.log("comment future " + likesValuesObject.likeValue);
+
+            console.log("likes change " + likesValuesObject.likeValueChange);
+
+            return {
+              ...commentT,
+              commentLikesValue:
+                commentT.commentLikesValue + likesValuesObject.likeValueChange,
+              commentLikes: [
+                {
+                  ...commentT.commentLikes[0],
+                  isPositive: likesValuesObject.likeValue,
+                },
+              ],
+            } as unknown as commentType;
+          }
+          return commentT;
+        });
 
         utils.setQueryData(
           [
             "comment.getAllCommentsByMainCommentId",
             { mainCommentId: comment.mainCommentId },
           ],
-          () => [...optimisticUpdatedComments]
+          optimisticUpdatedComments
         );
+        console.log("hello there");
+
+        console.log(comment.commentLikesValue);
+
+        console.log(optimisticUpdatedComments);
 
         return { previousComments };
       } else {
-        utils.invalidateQueries([
-          "comment.getCommentsByPostId",
-          { postId: comment.postId },
-        ]);
+        // await utils.cancelQuery([
+        //   "comment.getCommentsByPostId",
+        //   { postId: comment.postId },
+        // ]);
+        // const previousComments = utils.getQueryData([
+        //   "comment.getCommentsByPostId",
+        //   { postId: comment.postId },
+        // ]);
+        // if (!previousComments) return;
+        // const optimisticUpdatedComments = previousComments.map((commentT) => {
+        //   if (commentT.id === likeData.commentId) {
+        //     const likesValuesObject = getLikeValue({
+        //       previousLikeValue: commentT.commentLikes[0]?.isPositive,
+        //       inputLikeBooleanValue: likeData.isPositive,
+        //     });
+        //     return {
+        //       ...commentT,
+        //       commentLikesValue: (comment.commentLikesValue +=
+        //         likesValuesObject.likeValueChange),
+        //       commentLikes: [
+        //         {
+        //           ...commentT.commentLikes[0],
+        //           isPositive: likesValuesObject.likeValue,
+        //         },
+        //       ],
+        //     } as unknown as commentType;
+        //   }
+        //   return commentT;
+        // });
+        // utils.queryClient.setQueryData(
+        //   ["comment.getCommentsByPostId", { postId: comment.postId }],
+        //   optimisticUpdatedComments
+        // );
+        // return { previousComments };
       }
     },
 
-    onSuccess() {
+    onError(_err, _newComment, context) {
+      if (!context) return;
+
+      if (comment.mainCommentId) {
+        utils.setQueryData(
+          [
+            "comment.getAllCommentsByMainCommentId",
+            { mainCommentId: comment.mainCommentId },
+          ],
+          context.previousComments
+        );
+      } else {
+        // utils.setQueryData(
+        //   ["comment.getCommentsByPostId", { postId: comment.postId }],
+        //   context.previousComments
+        // );
+        // console.log(context.previousComments);
+      }
+    },
+
+    onSettled() {
       if (comment.mainCommentId) {
         utils.refetchQueries([
           "comment.getAllCommentsByMainCommentId",
           { mainCommentId: comment.mainCommentId },
         ]);
       } else {
-        utils.invalidateQueries([
-          "comment.getCommentsByPostId",
-          { postId: comment.postId },
-        ]);
+        // utils.invalidateQueries([
+        //   "comment.getCommentsByPostId",
+        //   { postId: comment.postId },
+        // ]);
       }
     },
   });
@@ -217,7 +309,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
   const changeLikeForComment = async (isPositive: boolean) => {
     checkIsAuth();
-    createLikeMutation.mutate({
+    createLikeMutation.mutateAsync({
       commentId: comment.id,
       isPositive,
     });
@@ -304,7 +396,10 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
             {isCommentHaveChildren && !isChildrenOpen && (
               <p
-                className="cursor-pointer text-sm text-info"
+                className={`
+                  "text-sm btn btn-link btn-xs hover:text-primary-focus  " 
+                  ${commentsQuery.isLoading ? "loading" : ""}
+                `}
                 onClick={openChildrenComments}
               >
                 {comment.childrenCount} more replies

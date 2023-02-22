@@ -5,62 +5,90 @@ import { createProtectedRouter } from "./protected-router";
 
 export const commentRouter = createRouter()
   .query("getCommentsByPostId", {
-    input: z.object({ postId: z.string().cuid() }),
+    input: z.object({
+      postId: z.string().cuid(),
+      orderBy: z.enum(["best", "new"]).optional(),
+    }),
     resolve({ ctx, input }) {
-      return ctx.prisma.comment.findMany({
-        where: { postId: input.postId, mainCommentId: null },
-        include: { user: true, commentLikes: true },
-      });
+      if (input.orderBy === "new") {
+        return ctx.prisma.comment.findMany({
+          where: { postId: input.postId, mainCommentId: null },
+          include: { user: true, commentLikes: true },
+          orderBy: { updatedAt: "desc" },
+        });
+      } else {
+        return ctx.prisma.comment.findMany({
+          where: { postId: input.postId, mainCommentId: null },
+          include: { user: true, commentLikes: true },
+          orderBy: { commentLikesValue: "desc" },
+        });
+      }
     },
   })
   .query("getAllCommentsByMainCommentId", {
     input: z.object({
       mainCommentId: z.string().cuid(),
+      orderBy: z.enum(["best", "new"]).optional(),
     }),
     async resolve({ input, ctx }) {
-      const data = await ctx.prisma.comment.findMany({
-        where: { mainCommentId: input.mainCommentId },
-        include: { user: true, commentLikes: true },
-        orderBy: { createdAt: "asc" },
-      });
-
-      return data;
+      if (input.orderBy === "new") {
+        return ctx.prisma.comment.findMany({
+          where: { mainCommentId: input.mainCommentId },
+          include: { user: true, commentLikes: true },
+          orderBy: { updatedAt: "desc" },
+        });
+      } else {
+        return ctx.prisma.comment.findMany({
+          where: { mainCommentId: input.mainCommentId },
+          include: { user: true, commentLikes: true },
+          orderBy: { commentLikesValue: "desc" },
+        });
+      }
     },
   })
   .merge(
     "",
     createProtectedRouter()
       .mutation("createComment", {
-        input: z.object({
-          text: z.string().min(1),
-          postId: z.string().cuid(),
-          mainCommentId: z.string().cuid().optional(),
-        }),
+        input: z.object(
+          {
+            text: z
+              .string()
+              .min(1, { message: "Must be 1 or more characters long" }),
+            postId: z.string().cuid(),
+            mainCommentId: z.string().cuid().optional(),
+          },
+          { required_error: "test" }
+        ),
         async resolve({ input, ctx }) {
-          const post = await ctx.prisma.post.update({
-            where: { id: input.postId },
-            data: {
-              comments: {
-                create: {
-                  text: input.text,
-                  mainCommentId: input.mainCommentId,
-                  userId: ctx.session.user.id,
-                },
-              },
-              commentsCount: { increment: 1 },
-            },
-          });
-
-          if (input.mainCommentId) {
-            await ctx.prisma.comment.update({
+          return ctx.prisma.$transaction(async (prisma) => {
+            const newComment = await prisma.comment.create({
               data: {
-                childrenCount: { increment: 1 },
+                text: input.text,
+                mainCommentId: input.mainCommentId,
+                userId: ctx.session.user.id,
+                postId: input.postId,
               },
-              where: { id: input.mainCommentId },
+              include: { user: true, commentLikes: true },
             });
-          }
 
-          return post;
+            await ctx.prisma.post.update({
+              where: { id: input.postId },
+              data: {
+                commentsCount: { increment: 1 },
+              },
+            });
+
+            if (input.mainCommentId) {
+              await ctx.prisma.comment.update({
+                data: {
+                  childrenCount: { increment: 1 },
+                },
+                where: { id: input.mainCommentId },
+              });
+            }
+            return newComment;
+          });
         },
       })
       .mutation("updateComment", {
@@ -78,7 +106,10 @@ export const commentRouter = createRouter()
           });
 
           if (!comment) {
-            throw new trpc.TRPCError({ code: "FORBIDDEN" });
+            throw new trpc.TRPCError({
+              code: "FORBIDDEN",
+              message: "User has not access to that comment",
+            });
           }
 
           return ctx.prisma.comment.update({
@@ -87,6 +118,10 @@ export const commentRouter = createRouter()
             },
             data: {
               text: input.text,
+            },
+            include: {
+              user: true,
+              commentLikes: true,
             },
           });
         },

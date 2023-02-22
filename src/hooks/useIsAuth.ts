@@ -6,9 +6,6 @@ export const useIsAuthCheck = (callbackUrl: string): (() => void) => {
   const router = useRouter();
   const session = useSession();
 
-  // "/post/" +
-  // post?.id
-
   const checkAuth = () => {
     if (session.status !== "authenticated") {
       router.push(

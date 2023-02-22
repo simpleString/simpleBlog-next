@@ -21,7 +21,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
       <PostTitle title={post.title} postId={post.id} />
 
       {post.image && <PostImage image={post.image} postId={post.id} />}
-      <InteractivePanel post={post} callbackUrl={"/"} />
+      {/* <InteractivePanel post={post} callbackUrl={"/"} /> */}
     </div>
   );
 };

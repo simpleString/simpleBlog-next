@@ -1,9 +1,8 @@
 import { withTRPC } from "@trpc/next";
-import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { SessionProvider } from "next-auth/react";
+import "remixicon/fonts/remixicon.css";
 import superjson from "superjson";
 import type { AppRouter } from "../server/router";
-import "remixicon/fonts/remixicon.css";
 import "../styles/globals.css";
 
 import type { NextPage } from "next";
@@ -54,12 +53,6 @@ export default withTRPC<AppRouter>({
       headers: {
         "x-ssr": "1",
       },
-      links: [
-        httpBatchLink({
-          url: "/api/trpc",
-          maxBatchSize: 10,
-        }),
-      ],
       /**
        * @link https://react-query.tanstack.com/reference/QueryClient
        */

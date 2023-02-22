@@ -55,7 +55,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
       )}
       <LikeControlComponent
         callbackFn={changeLikeForPost}
-        likeValue={post.likes[0]?.isPositive}
+        likeValue={post.likedByMe}
         likesCount={post.likesValue}
         className="ml-auto"
       />

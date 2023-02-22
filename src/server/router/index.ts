@@ -2,6 +2,7 @@
 import superjson from "superjson";
 import { createRouter } from "./context";
 
+import { ZodError } from "zod";
 import { commentRouter } from "./comments";
 import { fileRouter } from "./files";
 import { postRouter } from "./posts";
@@ -9,13 +10,18 @@ import { userRouter } from "./users";
 
 export const appRouter = createRouter()
   .transformer(superjson)
-  // .middleware(async ({ next }) => {
-  //   console.log("start");
-  //   await setTimeout(6000);
-  //   console.log("end");
-
-  //   return next();
-  // })
+  .formatError(({ shape, error }) => {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.code === "BAD_REQUEST" && error.cause instanceof ZodError
+            ? error.cause.flatten()
+            : null,
+      },
+    };
+  })
   .merge("comment.", commentRouter)
   .merge("user.", userRouter)
   .merge("post.", postRouter)

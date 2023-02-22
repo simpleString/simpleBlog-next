@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 import ContentLoader from "react-content-loader";
-import CommentSection from "../../components/CommentSection";
+import CommentSection from "../../components/comments/CommentSection";
 import InteractivePanel from "../../components/InteractivePanel";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { Layout } from "../../layouts/Layout";

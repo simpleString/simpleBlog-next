@@ -1,20 +1,10 @@
 import Head from "next/head";
-import { ReactElement, useEffect } from "react";
+import { ReactElement } from "react";
+import PostList from "../components/posts/PostList";
 import { Layout } from "../layouts/Layout";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { PostComponent } from "../components/posts/PostComponent";
-import { useScrollState } from "../store";
-import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
 
 const Home: NextPageWithLayout<React.FC> = () => {
-  const { data: posts, isLoading: postLoading } = trpc.useQuery(["post.posts"]);
-  const scrollPosition = useScrollState((state) => state.scrollPosition);
-
-  useEffect(() => {
-    window.scrollTo(0, scrollPosition);
-  }, [scrollPosition]);
-
   return (
     <>
       <Head>
@@ -23,13 +13,7 @@ const Home: NextPageWithLayout<React.FC> = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="md:p-4">
-        {postLoading ? (
-          <LoadingSpinner />
-        ) : (
-          posts?.map((post) => <PostComponent key={post.id} post={post} />)
-        )}
-      </div>
+      <PostList />
     </>
   );
 };
