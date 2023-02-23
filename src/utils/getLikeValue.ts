@@ -13,7 +13,7 @@ export const getLikeValue = ({
     if (previousLikeValue === 1) {
       likeValue = 0;
       likeValueChange = -1;
-    } else if (previousLikeValue === 0) {
+    } else if (previousLikeValue === 0 || previousLikeValue === undefined) {
       likeValue = 1;
       likeValueChange = 1;
     } else if (previousLikeValue === -1) {
@@ -24,7 +24,7 @@ export const getLikeValue = ({
     if (previousLikeValue === 1) {
       likeValue = -1;
       likeValueChange = -2;
-    } else if (previousLikeValue === 0) {
+    } else if (previousLikeValue === 0 || previousLikeValue === undefined) {
       likeValue = -1;
       likeValueChange = -1;
     } else if (previousLikeValue === -1) {

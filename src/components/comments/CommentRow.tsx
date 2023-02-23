@@ -1,13 +1,14 @@
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
-import { ChangeEvent, memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
+import { useOrderCommentStore } from "../../store";
 import { getLikeValue } from "../../utils/getLikeValue";
 import { inferQueryOutput, trpc } from "../../utils/trpc";
-import CustomTextarea from "../custom/CustomTextarea";
 import LikeControlComponent from "../LikeControlComponent";
+import CommentForm from "./CommentForm";
 
-type commentType = inferQueryOutput<"comment.getCommentsByPostId">[0];
+type commentType = inferQueryOutput<"comment.getAllCommentsByMainCommentId">[0];
 type CommentRowProps = {
   comment: commentType;
   callbackUrl: string;
@@ -15,296 +16,186 @@ type CommentRowProps = {
   isShow?: boolean;
 };
 
-type CommentStateStatus = {
-  comment: string;
-  index: string;
-};
-
 const CommentRow: React.FC<CommentRowProps> = ({
   comment,
   callbackUrl,
-  openComments = false,
   isShow = true,
 }) => {
   const session = useSession();
   const checkIsAuth = useIsAuthCheck(callbackUrl);
 
+  // Open first inner comments for user comport by default
+  const [areChildrenOpen, setAreChildrenOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isReplyMode, setIsReplyMode] = useState(false);
+
+  const order = useOrderCommentStore((store) => store.order);
+
   const utils = trpc.useContext();
 
-  const [editableComment, setEditableComment] = useState<CommentStateStatus>({
-    comment: "",
-    index: "",
-  });
-
-  const [replyComment, setReplyComment] = useState<CommentStateStatus>({
-    comment: "",
-    index: "",
-  });
-
-  // Open first inner comments for user comport by default
-  const [isChildrenOpen, setIsChildrenOpen] = useState(false);
-
-  useEffect(() => {
-    setIsChildrenOpen(openComments);
-  }, [openComments]);
-
-  const commentsQuery = trpc.useQuery(
-    ["comment.getAllCommentsByMainCommentId", { mainCommentId: comment.id }],
-    { enabled: openComments }
+  const childrenCommentsQuery = trpc.useQuery(
+    [
+      "comment.getAllCommentsByMainCommentId",
+      { mainCommentId: comment.id, orderBy: order },
+    ],
+    { enabled: areChildrenOpen }
   );
 
   const updateCommentMutation = trpc.useMutation(["comment.updateComment"], {
-    // async onMutate(newData) {
-    //   if (!comment.mainCommentId) return;
-    //   await utils.cancelQuery([
-    //     "comment.getAllCommentsByMainCommentId",
-    //     { mainCommentId: comment.mainCommentId },
-    //   ]);
-    //   const previousValue = utils.getQueryData([
-    //     "comment.getAllCommentsByMainCommentId",
-    //     { mainCommentId: comment.mainCommentId },
-    //   ]);
-
-    //   console.log(newData);
-
-    //   utils.setQueryData(
-    //     [
-    //       "comment.getAllCommentsByMainCommentId",
-    //       { mainCommentId: comment.mainCommentId },
-    //     ],
-    //     (old) => [...old, newTodo]
-    //   );
-
-    //   // Return a context object with the snapshotted value
-    //   return { previousTodos };
-    // },
-
-    // onError() {},
-
-    async onSettled() {
-      //   if (comment.mainCommentId) {
-      //     utils.invalidateQueries([
-      //       "comment.getAllCommentsByMainCommentId",
-      //       { mainCommentId: comment.mainCommentId },
-      //     ]);
-      //   } else {
-      //     utils.invalidateQueries([
-      //       "comment.getCommentsByPostId",
-      //       { postId: comment.postId },
-      //     ]);
-      //   }
+    onSuccess: (data) => {
+      if (!comment.mainCommentId) return;
+      utils.setQueryData(
+        [
+          "comment.getAllCommentsByMainCommentId",
+          {
+            orderBy: order,
+            mainCommentId: comment.mainCommentId,
+          },
+        ],
+        (old) => {
+          if (!old) return [];
+          return old?.map((comment) => {
+            if (data.id === comment.id) {
+              return data;
+            }
+            return comment;
+          });
+        }
+      );
     },
   });
 
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
-    async onSuccess() {
-      // commentsQuery.refetch();
-      // if (comment.mainCommentId) {
-      //   utils.refetchQueries([
-      //     "comment.getAllCommentsByMainCommentId",
-      //     { mainCommentId: comment.mainCommentId },
-      //   ]);
-      // } else {
-      //   utils.invalidateQueries([
-      //     "comment.getCommentsByPostId",
-      //     { postId: comment.postId },
-      //   ]);
-      // }
-      // setIsChildrenOpen(true);
+    onSuccess: async (data) => {
+      if (!comment.mainCommentId) return;
+
+      utils.setQueryData(["post.post", { postId: comment.postId }], (old) =>
+        old ? { ...old, commentsCount: old.commentsCount + 1 } : null
+      );
+      utils.setQueryData(
+        [
+          "comment.getAllCommentsByMainCommentId",
+          {
+            orderBy: order,
+            mainCommentId: comment.mainCommentId,
+          },
+        ],
+        (old) => {
+          if (!old) return [];
+          return old?.map((oldComment) => {
+            if (oldComment.id === comment.id)
+              return {
+                ...oldComment,
+                childrenCount: oldComment.childrenCount + 1,
+              };
+
+            return oldComment;
+          });
+        }
+      );
+      utils.setQueryData(
+        [
+          "comment.getAllCommentsByMainCommentId",
+          { mainCommentId: comment.id, orderBy: order },
+        ],
+        (old) => {
+          if (!old) return [data];
+          return [data, ...old];
+        }
+      );
+      setAreChildrenOpen(true);
     },
   });
 
   const createLikeMutation = trpc.useMutation(["comment.like"], {
-    onMutate: async (likeData) => {
-      if (comment.mainCommentId) {
-        await utils.cancelQuery([
+    onMutate: async (data) => {
+      if (!comment.mainCommentId) return;
+
+      await utils.cancelQuery([
+        "comment.getAllCommentsByMainCommentId",
+        {
+          orderBy: order,
+          mainCommentId: comment.mainCommentId,
+        },
+      ]);
+
+      const previousComments = utils.getQueryData([
+        "comment.getAllCommentsByMainCommentId",
+        {
+          orderBy: order,
+          mainCommentId: comment.mainCommentId,
+        },
+      ]);
+
+      if (!previousComments) return;
+
+      const optimisticUpdatedComments = previousComments.map((oldComment) => {
+        if (oldComment.id === data.commentId) {
+          const likesValuesObject = getLikeValue({
+            previousLikeValue: oldComment.likedByMe,
+            inputLikeBooleanValue: data.isPositive,
+          });
+          return {
+            ...oldComment,
+            commentLikesValue:
+              comment.commentLikesValue + likesValuesObject.likeValueChange,
+            likedByMe: likesValuesObject.likeValue,
+          } as any;
+        }
+        return oldComment;
+      });
+
+      utils.setQueryData(
+        [
           "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.mainCommentId },
-        ]);
+          {
+            orderBy: order,
+            mainCommentId: comment.mainCommentId,
+          },
+        ],
+        optimisticUpdatedComments
+      );
 
-        const previousComments = utils.getQueryData([
-          "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.mainCommentId },
-        ]);
-
-        if (!previousComments) return;
-
-        const optimisticUpdatedComments = previousComments.map((commentT) => {
-          if (commentT.id === likeData.commentId) {
-            const likesValuesObject = getLikeValue({
-              previousLikeValue: commentT.commentLikes[0]?.isPositive,
-              inputLikeBooleanValue: likeData.isPositive,
-            });
-            console.log("commentLike " + commentT.commentLikes[0]?.isPositive);
-            console.log("comment Likes value " + commentT.commentLikesValue);
-            console.log("comment future " + likesValuesObject.likeValue);
-
-            console.log("likes change " + likesValuesObject.likeValueChange);
-
-            return {
-              ...commentT,
-              commentLikesValue:
-                commentT.commentLikesValue + likesValuesObject.likeValueChange,
-              commentLikes: [
-                {
-                  ...commentT.commentLikes[0],
-                  isPositive: likesValuesObject.likeValue,
-                },
-              ],
-            } as unknown as commentType;
-          }
-          return commentT;
-        });
-
-        utils.setQueryData(
-          [
-            "comment.getAllCommentsByMainCommentId",
-            { mainCommentId: comment.mainCommentId },
-          ],
-          optimisticUpdatedComments
-        );
-        console.log("hello there");
-
-        console.log(comment.commentLikesValue);
-
-        console.log(optimisticUpdatedComments);
-
-        return { previousComments };
-      } else {
-        // await utils.cancelQuery([
-        //   "comment.getCommentsByPostId",
-        //   { postId: comment.postId },
-        // ]);
-        // const previousComments = utils.getQueryData([
-        //   "comment.getCommentsByPostId",
-        //   { postId: comment.postId },
-        // ]);
-        // if (!previousComments) return;
-        // const optimisticUpdatedComments = previousComments.map((commentT) => {
-        //   if (commentT.id === likeData.commentId) {
-        //     const likesValuesObject = getLikeValue({
-        //       previousLikeValue: commentT.commentLikes[0]?.isPositive,
-        //       inputLikeBooleanValue: likeData.isPositive,
-        //     });
-        //     return {
-        //       ...commentT,
-        //       commentLikesValue: (comment.commentLikesValue +=
-        //         likesValuesObject.likeValueChange),
-        //       commentLikes: [
-        //         {
-        //           ...commentT.commentLikes[0],
-        //           isPositive: likesValuesObject.likeValue,
-        //         },
-        //       ],
-        //     } as unknown as commentType;
-        //   }
-        //   return commentT;
-        // });
-        // utils.queryClient.setQueryData(
-        //   ["comment.getCommentsByPostId", { postId: comment.postId }],
-        //   optimisticUpdatedComments
-        // );
-        // return { previousComments };
-      }
+      return { previousComments };
     },
 
-    onError(_err, _newComment, context) {
+    onError(_err, _newData, context) {
       if (!context) return;
+      if (!comment.mainCommentId) return;
 
-      if (comment.mainCommentId) {
-        utils.setQueryData(
-          [
-            "comment.getAllCommentsByMainCommentId",
-            { mainCommentId: comment.mainCommentId },
-          ],
-          context.previousComments
-        );
-      } else {
-        // utils.setQueryData(
-        //   ["comment.getCommentsByPostId", { postId: comment.postId }],
-        //   context.previousComments
-        // );
-        // console.log(context.previousComments);
-      }
-    },
-
-    onSettled() {
-      if (comment.mainCommentId) {
-        utils.refetchQueries([
+      utils.setQueryData(
+        [
           "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.mainCommentId },
-        ]);
-      } else {
-        // utils.invalidateQueries([
-        //   "comment.getCommentsByPostId",
-        //   { postId: comment.postId },
-        // ]);
-      }
+          {
+            orderBy: order,
+            mainCommentId: comment.mainCommentId,
+          },
+        ],
+        context.previousComments
+      );
     },
   });
 
-  const toggleEditMode = () => {
-    if (editableComment.index === comment.id) {
-      setEditableComment({ ...editableComment, index: "" });
-    } else {
-      setEditableComment({
-        comment: comment.text,
-        index: comment.id,
-      });
-    }
-  };
-
-  const handleEditableTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setEditableComment({
-      ...editableComment,
-      comment: e.target.value || "",
-    });
-  };
-
-  const updateComment = async () => {
+  const onSubmitEdit = async (text: string) => {
     checkIsAuth();
-    if (editableComment.comment.length > 0) {
-      await updateCommentMutation.mutateAsync({
-        postId: comment.id,
-        id: comment.id,
-        text: editableComment.comment,
-      });
-      setEditableComment({ comment: "", index: "" });
-    }
-  };
 
-  const toggleReplyMode = () => {
-    if (replyComment.index === comment.id) {
-      setReplyComment({ ...replyComment, index: "" });
-    } else {
-      setReplyComment({ ...replyComment, index: comment.id });
-    }
-  };
-
-  const handleReplyTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    setReplyComment({
-      ...replyComment,
-      comment: e.target.value || "",
+    await updateCommentMutation.mutateAsync({
+      postId: comment.id,
+      id: comment.id,
+      text,
     });
+    setIsEditMode(false);
+    return Promise.resolve();
   };
 
-  const createReply = async () => {
+  const onSubmitReply = async (text: string) => {
     checkIsAuth();
-    if (replyComment.comment.length > 0) {
-      await createCommentMutation.mutateAsync({
-        postId: comment.postId,
-        text: replyComment.comment,
-        mainCommentId: replyComment.index,
-      });
-      setReplyComment({ comment: "", index: "" });
-    }
-  };
-
-  const openChildrenComments = async () => {
-    if (commentsQuery.status === "idle") {
-      await commentsQuery.refetch();
-    }
-    setIsChildrenOpen(!isChildrenOpen);
+    await createCommentMutation.mutateAsync({
+      postId: comment.postId,
+      text,
+      mainCommentId: comment.id,
+    });
+    setIsReplyMode(false);
   };
 
   const changeLikeForComment = async (isPositive: boolean) => {
@@ -316,18 +207,16 @@ const CommentRow: React.FC<CommentRowProps> = ({
   };
 
   const formattedDate = comment.createdAt.toLocaleDateString();
-  const isInEditableMode = editableComment.index === comment.id;
-  const isInReplayMode = replyComment.index === comment.id;
   const isCommentHaveChildren = !!comment.childrenCount;
 
   return (
     <div className="relative">
       {isShow && (
         <>
-          {isChildrenOpen && isCommentHaveChildren && (
+          {areChildrenOpen && isCommentHaveChildren && (
             <div
               className="absolute top-12 left-0 w-3 h-[length:calc(100%_-_theme(spacing.12))] border-l-4 border-r-4 border-transparent bg-[rgba(0,_0,_0,_0.1)] bg-clip-padding hover:bg-[rgba(0,_0,_0,_0.3)] cursor-pointer"
-              onClick={openChildrenComments}
+              onClick={() => setAreChildrenOpen(!areChildrenOpen)}
             />
           )}
           <div className="flex items-center gap-4">
@@ -340,13 +229,13 @@ const CommentRow: React.FC<CommentRowProps> = ({
             />
 
             <div>
-              <div>{comment.user.name}</div>
+              <p>{comment.user.name}</p>
               <div>{formattedDate}</div>
             </div>
             {session.status === "authenticated" && (
               <div
                 className="ml-auto pr-2 motion-safe:hover:scale-105 duration-500 text-center cursor-pointer"
-                onClick={toggleEditMode}
+                onClick={() => setIsEditMode(!isEditMode)}
               >
                 <a>Edit</a>
                 <i className="ri-pencil-line" />
@@ -355,17 +244,13 @@ const CommentRow: React.FC<CommentRowProps> = ({
           </div>
 
           <div className="ml-8">
-            {isInEditableMode ? (
-              <div className="border border-gray-800 mb-4 ">
-                <CustomTextarea
-                  placeholder="Write your comment here..."
-                  value={editableComment.comment}
-                  onChange={handleEditableTextChange}
-                />
-                <div className="flex justify-end pb-4">
-                  <button onClick={updateComment}>Update</button>
-                </div>
-              </div>
+            {isEditMode ? (
+              <CommentForm
+                onSubmit={onSubmitEdit}
+                initialValue={comment.text}
+                error={updateCommentMutation.error?.data?.zodError?.fieldErrors}
+                loading={updateCommentMutation.isLoading}
+              />
             ) : (
               <p>{comment.text}</p>
             )}
@@ -373,34 +258,40 @@ const CommentRow: React.FC<CommentRowProps> = ({
             <div className="flex gap-2">
               <LikeControlComponent
                 callbackFn={changeLikeForComment}
-                likeValue={comment.commentLikes[0]?.isPositive}
+                likeValue={comment.likedByMe}
                 likesCount={comment.commentLikesValue}
               />
-              <span className="cursor-pointer " onClick={toggleReplyMode}>
+              <span
+                className="cursor-pointer "
+                onClick={() => setIsReplyMode(!isReplyMode)}
+              >
                 Reply
               </span>
             </div>
-            {isInReplayMode && (
-              <div className="border border-gray-800 mb-4 ">
-                <CustomTextarea
-                  className="bg-inherit"
-                  placeholder="Write your comment here..."
-                  value={replyComment.comment}
-                  onChange={handleReplyTextChange}
-                />
-                <div className="flex justify-end pb-4">
-                  <button onClick={createReply}>Comment</button>
-                </div>
-              </div>
+            {isReplyMode && (
+              <CommentForm
+                onSubmit={onSubmitReply}
+                error={createCommentMutation.error?.data?.zodError?.fieldErrors}
+                loading={createCommentMutation.isLoading}
+              />
             )}
 
-            {isCommentHaveChildren && !isChildrenOpen && (
+            {isCommentHaveChildren && !areChildrenOpen && (
               <p
                 className={`
-                  "text-sm btn btn-link btn-xs hover:text-primary-focus  " 
-                  ${commentsQuery.isLoading ? "loading" : ""}
+                  "text-sm btn btn-link btn-xs hover:text-primary-focus" 
                 `}
-                onClick={openChildrenComments}
+                onClick={() => setAreChildrenOpen(!areChildrenOpen)}
+              >
+                {comment.childrenCount} more replies
+              </p>
+            )}
+
+            {childrenCommentsQuery.isLoading && (
+              <p
+                className={`
+                  "text-sm btn loading btn-link btn-xs hover:text-primary-focus " 
+                `}
               >
                 {comment.childrenCount} more replies
               </p>
@@ -408,12 +299,12 @@ const CommentRow: React.FC<CommentRowProps> = ({
           </div>
         </>
       )}
-      {commentsQuery.data?.map((comment) => (
+      {childrenCommentsQuery.data?.map((comment) => (
         <div className="ml-8" key={comment.id}>
-          <CommentRowMemo
+          <CommentRow
             comment={comment}
             callbackUrl={callbackUrl}
-            isShow={isChildrenOpen && isShow}
+            isShow={areChildrenOpen && isShow}
           />
         </div>
       ))}
@@ -421,5 +312,4 @@ const CommentRow: React.FC<CommentRowProps> = ({
   );
 };
 
-export const CommentRowMemo = memo(CommentRow);
 export default CommentRow;

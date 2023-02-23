@@ -153,7 +153,7 @@ export const postRouter = createRouter()
           id: z.string().cuid(),
           title: z.string().min(5),
           text: z.string(),
-          image: z.string().url(),
+          image: z.string().url().or(z.string().max(0)),
         }),
         async resolve({ input, ctx }) {
           const post = await ctx.prisma.post.findFirst({

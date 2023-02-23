@@ -23,17 +23,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
   const { order, changeOrder } = useOrderCommentStore();
 
-  const [commentCount, setCommentCount] = useState(0);
-
-  useEffect(() => {
-    setCommentCount(
-      postCommentsCount < commentCount ? commentCount : postCommentsCount
-    );
-  }, [postCommentsCount, commentCount]);
-
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
-    onSuccess: (data) => {
-      setCommentCount(commentCount + 1);
+    onSuccess: async (data) => {
+      utils.setQueryData(["post.post", { postId }], (old) =>
+        old ? { ...old, commentsCount: old.commentsCount + 1 } : null
+      );
 
       utils.setQueryData(
         ["comment.getCommentsByPostId", { postId, orderBy: order }],
@@ -72,7 +66,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       </div>
       <div>
         <div className="flex">
-          <p>{commentCount} comments</p>
+          <p>{postCommentsCount} comments</p>
           <div className="ml-auto">
             <Dropdown
               buttonComponentClasses="btn "
@@ -90,7 +84,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           </div>
         </div>
         {comments?.map((comment) => (
-          <div key={comment.id} className="p-2  shadow ">
+          <div key={comment.id} className="p-2 shadow ">
             <MainPostComment
               comment={comment}
               callbackUrl={"/post/" + comment.postId}

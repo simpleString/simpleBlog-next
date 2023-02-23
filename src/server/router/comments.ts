@@ -7,43 +7,60 @@ export const commentRouter = createRouter()
   .query("getCommentsByPostId", {
     input: z.object({
       postId: z.string().cuid(),
-      orderBy: z.enum(["best", "new"]).optional(),
+      orderBy: z.enum(["best", "new"]),
     }),
-    resolve({ ctx, input }) {
+    async resolve({ ctx, input }) {
+      let userId: undefined | string;
+      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
+      let comments;
       if (input.orderBy === "new") {
-        return ctx.prisma.comment.findMany({
+        comments = await ctx.prisma.comment.findMany({
           where: { postId: input.postId, mainCommentId: null },
-          include: { user: true, commentLikes: true },
+          include: {
+            user: true,
+            commentLikes: { where: { userId }, take: 1 },
+          },
           orderBy: { updatedAt: "desc" },
         });
       } else {
-        return ctx.prisma.comment.findMany({
+        comments = await ctx.prisma.comment.findMany({
           where: { postId: input.postId, mainCommentId: null },
-          include: { user: true, commentLikes: true },
+          include: { user: true, commentLikes: { where: { userId }, take: 1 } },
           orderBy: { commentLikesValue: "desc" },
         });
       }
+      return comments.map((comment) => ({
+        ...comment,
+        likedByMe: comment.commentLikes[0]?.isPositive,
+      }));
     },
   })
   .query("getAllCommentsByMainCommentId", {
     input: z.object({
       mainCommentId: z.string().cuid(),
-      orderBy: z.enum(["best", "new"]).optional(),
+      orderBy: z.enum(["best", "new"]),
     }),
     async resolve({ input, ctx }) {
+      let comments;
+
       if (input.orderBy === "new") {
-        return ctx.prisma.comment.findMany({
+        comments = await ctx.prisma.comment.findMany({
           where: { mainCommentId: input.mainCommentId },
           include: { user: true, commentLikes: true },
           orderBy: { updatedAt: "desc" },
         });
       } else {
-        return ctx.prisma.comment.findMany({
+        comments = await ctx.prisma.comment.findMany({
           where: { mainCommentId: input.mainCommentId },
           include: { user: true, commentLikes: true },
           orderBy: { commentLikesValue: "desc" },
         });
       }
+
+      return comments.map((comment) => ({
+        ...comment,
+        likedByMe: comment.commentLikes[0]?.isPositive,
+      }));
     },
   })
   .merge(
@@ -87,7 +104,10 @@ export const commentRouter = createRouter()
                 where: { id: input.mainCommentId },
               });
             }
-            return newComment;
+            return {
+              ...newComment,
+              likedByMe: newComment.commentLikes[0]?.isPositive,
+            };
           });
         },
       })
@@ -112,7 +132,7 @@ export const commentRouter = createRouter()
             });
           }
 
-          return ctx.prisma.comment.update({
+          const updatedComment = await ctx.prisma.comment.update({
             where: {
               id: input.id,
             },
@@ -124,6 +144,11 @@ export const commentRouter = createRouter()
               commentLikes: true,
             },
           });
+
+          return {
+            ...updatedComment,
+            likedByMe: updatedComment.commentLikes[0]?.isPositive,
+          };
         },
       })
       .mutation("like", {
@@ -165,9 +190,6 @@ export const commentRouter = createRouter()
               }
             }
 
-            console.log(like);
-            console.log(likeValueChange);
-
             return await ctx.prisma.commentLike.update({
               where: {
                 commentId_userId: {
@@ -200,83 +222,6 @@ export const commentRouter = createRouter()
               },
             });
           }
-
-          // if (like) {
-          //   if (input.isPositive === like.isPositive) {
-          //     return ctx.prisma.commentLike.update({
-          //       where: {
-          //         commentId_userId: {
-          //           commentId: input.commentId,
-          //           userId: ctx.session.user.id,
-          //         },
-          //       },
-          //       data: {
-          //         isPositive: null,
-          //         comment: {
-          //           update: {
-          //             commentLikesValue: {
-          //               increment: input.isPositive ? -1 : 1,
-          //             },
-          //           },
-          //         },
-          //       },
-          //     });
-          //   } else if (like.isPositive === null) {
-          //     return ctx.prisma.commentLike.update({
-          //       where: {
-          //         commentId_userId: {
-          //           commentId: input.commentId,
-          //           userId: ctx.session.user.id,
-          //         },
-          //       },
-          //       data: {
-          //         isPositive: input.isPositive,
-          //         comment: {
-          //           update: {
-          //             commentLikesValue: {
-          //               increment: input.isPositive ? 1 : -1,
-          //             },
-          //           },
-          //         },
-          //       },
-          //     });
-          //   } else {
-          //     const updateLikesValue = like.isPositive ? -2 : 2;
-          //     return ctx.prisma.commentLike.update({
-          //       where: {
-          //         commentId_userId: {
-          //           commentId: input.commentId,
-          //           userId: ctx.session.user.id,
-          //         },
-          //       },
-          //       data: {
-          //         isPositive: !like.isPositive,
-          //         comment: {
-          //           update: {
-          //             commentLikesValue: { increment: updateLikesValue },
-          //           },
-          //         },
-          //       },
-          //     });
-          //   }
-          // }
-
-          // return ctx.prisma.comment.update({
-          //   where: {
-          //     id: input.commentId,
-          //   },
-          //   data: {
-          //     commentLikesValue: {
-          //       increment: input.isPositive ? +input.isPositive : -1,
-          //     },
-          //     commentLikes: {
-          //       create: {
-          //         isPositive: input.isPositive,
-          //         userId: ctx.session.user.id,
-          //       },
-          //     },
-          //   },
-          // });
         },
       })
   );

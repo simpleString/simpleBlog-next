@@ -1,14 +1,18 @@
-import { useState } from "react";
-import { inferQueryOutput, trpc } from "../../utils/trpc";
-import NextImage from "next/image";
 import { useSession } from "next-auth/react";
-import CommentForm from "./CommentForm";
-import LikeControlComponent from "../LikeControlComponent";
+import NextImage from "next/image";
+import { useState } from "react";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
-import { CommentRowMemo } from "./CommentRow";
+import { useOrderCommentStore } from "../../store";
+import { getLikeValue } from "../../utils/getLikeValue";
+import { inferQueryOutput, trpc } from "../../utils/trpc";
+import LikeControlComponent from "../LikeControlComponent";
+import CommentForm from "./CommentForm";
+import CommentRow from "./CommentRow";
+
+type commentType = inferQueryOutput<"comment.getCommentsByPostId">[0];
 
 type MainPostCommentProps = {
-  comment: inferQueryOutput<"comment.getCommentsByPostId">[0];
+  comment: commentType;
   callbackUrl: string;
 };
 
@@ -23,17 +27,25 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [isReplyMode, setIsReplyMode] = useState(false);
 
+  const order = useOrderCommentStore((store) => store.order);
+
   const utils = trpc.useContext();
 
   const childrenCommentsQuery = trpc.useQuery(
-    ["comment.getAllCommentsByMainCommentId", { mainCommentId: comment.id }],
+    [
+      "comment.getAllCommentsByMainCommentId",
+      { mainCommentId: comment.id, orderBy: order },
+    ],
     { enabled: areChildrenOpen }
   );
 
   const updateCommentMutation = trpc.useMutation(["comment.updateComment"], {
     onSuccess: (data) => {
       utils.setQueryData(
-        ["comment.getCommentsByPostId", { postId: comment.postId }],
+        [
+          "comment.getCommentsByPostId",
+          { postId: comment.postId, orderBy: order },
+        ],
         (old) => {
           if (!old) return [];
           return old?.map((comment) => {
@@ -47,22 +59,99 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
     },
   });
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
-    onSuccess: (data) => {
-      utils.invalidateQueries(["comment.getCommentsByPostId", { postId }]);
-      // utils.setQueryData(
-      //   [
-      //     "comment.getAllCommentsByMainCommentId",
-      //     { mainCommentId: comment.id },
-      //   ],
-      //   (old) => {
-      //     if (!old) return [];
-      //     return [data, ...old];
-      //   }
-      // );
+    onSuccess: async (data) => {
+      utils.setQueryData(["post.post", { postId: comment.postId }], (old) =>
+        old ? { ...old, commentsCount: old.commentsCount + 1 } : null
+      );
+      utils.setQueryData(
+        [
+          "comment.getCommentsByPostId",
+          { orderBy: order, postId: comment.postId },
+        ],
+        (old) => {
+          if (!old) return [];
+          return old?.map((oldComment) => {
+            if (oldComment.id === comment.id)
+              return {
+                ...oldComment,
+                childrenCount: oldComment.childrenCount + 1,
+              };
+
+            return oldComment;
+          });
+        }
+      );
+      utils.setQueryData(
+        [
+          "comment.getAllCommentsByMainCommentId",
+          { mainCommentId: comment.id, orderBy: order },
+        ],
+        (old) => {
+          if (!old) return [data];
+          return [data, ...old];
+        }
+      );
       setAreChildrenOpen(true);
     },
   });
-  const commentLikeMutation = trpc.useMutation(["comment.like"]);
+
+  const commentLikeMutation = trpc.useMutation(["comment.like"], {
+    onMutate: async (data) => {
+      await utils.cancelQuery([
+        "comment.getCommentsByPostId",
+        { postId: comment.postId, orderBy: order },
+      ]);
+
+      const previousComments = utils.getQueryData([
+        "comment.getCommentsByPostId",
+        { postId: comment.postId, orderBy: order },
+      ]);
+
+      if (!previousComments) return;
+
+      console.log(previousComments);
+
+      const optimisticUpdatedComments = previousComments.map((oldComment) => {
+        if (oldComment.id === data.commentId) {
+          const likesValuesObject = getLikeValue({
+            previousLikeValue: oldComment.likedByMe,
+            inputLikeBooleanValue: data.isPositive,
+          });
+          return {
+            ...oldComment,
+            commentLikesValue:
+              comment.commentLikesValue + likesValuesObject.likeValueChange,
+            likedByMe: likesValuesObject.likeValue,
+          } as any;
+        }
+        return oldComment;
+      });
+
+      console.log(optimisticUpdatedComments);
+
+      utils.setQueryData(
+        [
+          "comment.getCommentsByPostId",
+          { postId: comment.postId, orderBy: order },
+        ],
+        optimisticUpdatedComments
+      );
+
+      return { previousComments };
+    },
+
+    onError(_err, _newData, context) {
+      if (!context) return;
+
+      utils.setQueryData(
+        [
+          "comment.getCommentsByPostId",
+          { postId: comment.postId, orderBy: order },
+        ],
+        context.previousComments
+      );
+    },
+  });
 
   const onSubmitEdit = async (text: string) => {
     checkIsAuth();
@@ -93,8 +182,6 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
 
   const formattedDate = comment.createdAt.toLocaleDateString();
   const isCommentHaveChildren = !!comment.childrenCount;
-
-  console.log(comment.childrenCount);
 
   return (
     <div className="relative">
@@ -144,7 +231,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
         <div className="flex gap-2">
           <LikeControlComponent
             callbackFn={changeLikeForComment}
-            likeValue={comment.commentLikes[0]?.isPositive}
+            likeValue={comment.likedByMe}
             likesCount={comment.commentLikesValue}
           />
           <span
@@ -174,11 +261,21 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
             {comment.childrenCount} more replies
           </p>
         )}
+
+        {childrenCommentsQuery.isLoading && (
+          <p
+            className={`
+                  "text-sm btn loading btn-link btn-xs hover:text-primary-focus " 
+                `}
+          >
+            {comment.childrenCount} more replies
+          </p>
+        )}
       </div>
 
       {childrenCommentsQuery.data?.map((comment) => (
         <div className="ml-8" key={comment.id}>
-          <CommentRowMemo
+          <CommentRow
             comment={comment}
             callbackUrl={callbackUrl}
             isShow={areChildrenOpen}
