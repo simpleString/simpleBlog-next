@@ -1,12 +1,14 @@
 import { useSession } from "next-auth/react";
-import NextImage from "next/image";
 import { useState } from "react";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
 import { useOrderCommentStore } from "../../store";
 import { getLikeValue } from "../../utils/getLikeValue";
+import { getRelativeTime } from "../../utils/getRelativeTime";
 import { inferQueryOutput, trpc } from "../../utils/trpc";
 import LikeControlComponent from "../LikeControlComponent";
+import CommentFooter from "./CommentFooter";
 import CommentForm from "./CommentForm";
+import CommentHeader from "./CommentHeader";
 import CommentRow from "./CommentRow";
 
 type commentType = inferQueryOutput<"comment.getCommentsByPostId">[0];
@@ -60,8 +62,11 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
   });
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
-      utils.setQueryData(["post.post", { postId: comment.postId }], (old) =>
-        old ? { ...old, commentsCount: old.commentsCount + 1 } : null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      utils.setQueryData(
+        ["post.post", { postId: comment.postId }],
+        (old: any) =>
+          old ? { ...old, commentsCount: old.commentsCount + 1 } : null
       );
       utils.setQueryData(
         [
@@ -122,7 +127,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
             commentLikesValue:
               comment.commentLikesValue + likesValuesObject.likeValueChange,
             likedByMe: likesValuesObject.likeValue,
-          } as any;
+          } as never;
         }
         return oldComment;
       });
@@ -160,7 +165,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
       postId: comment.postId,
       text,
     });
-    setIsEditMode(false);
+    toggleEditMode(false);
     return Promise.resolve();
   };
 
@@ -171,7 +176,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
       text,
       mainCommentId: comment.id,
     });
-    setIsReplyMode(false);
+    toggleReplyMode(false);
     return Promise.resolve();
   };
 
@@ -180,43 +185,37 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
     commentLikeMutation.mutateAsync({ commentId: comment.id, isPositive });
   };
 
-  const formattedDate = comment.createdAt.toLocaleDateString();
+  const toggleReplyMode = (state: boolean) => {
+    if (!state) createCommentMutation.reset();
+    setIsReplyMode(state);
+  };
+
+  const toggleEditMode = (state: boolean) => {
+    if (!state) updateCommentMutation.reset();
+    setIsEditMode(state);
+  };
+
+  const formattedDate = getRelativeTime(comment.createdAt);
   const isCommentHaveChildren = !!comment.childrenCount;
 
   return (
-    <div className="relative">
+    <div className="relative text-sm">
       {areChildrenOpen && isCommentHaveChildren && (
-        <div
-          className="absolute top-12 left-0 w-3 h-[length:calc(100%_-_theme(spacing.12))] border-l-4 border-r-4 border-transparent bg-[rgba(0,_0,_0,_0.1)] bg-clip-padding hover:bg-[rgba(0,_0,_0,_0.3)] cursor-pointer"
+        <button
+          className="absolute top-12 left-0 w-3 h-[calc(100%_-_theme(spacing.12))] border-l-4 border-r-4 border-transparent bg-[rgba(0,_0,_0,_0.1)] bg-clip-padding hover:bg-[rgba(0,_0,_0,_0.3)]"
           onClick={() => setAreChildrenOpen(!areChildrenOpen)}
         />
       )}
 
-      <div className="flex items-center gap-4">
-        <NextImage
-          alt="Avatar"
-          src={comment.user.image || "/user-placeholder.jpg"}
-          width="32"
-          height="32"
-          className="rounded-full"
-        />
+      <CommentHeader
+        comment={comment}
+        formattedDate={formattedDate}
+        isEditMode={isEditMode}
+        sessionStatus={session.status}
+        toggleEditMode={toggleEditMode}
+      />
 
-        <div>
-          <p>{comment.user.name}</p>
-          <div>{formattedDate}</div>
-        </div>
-        {session.status === "authenticated" && (
-          <div
-            className="ml-auto pr-2 motion-safe:hover:scale-105 duration-500 text-center cursor-pointer"
-            onClick={() => setIsEditMode(!isEditMode)}
-          >
-            <a>Edit</a>
-            <i className="ri-pencil-line" />
-          </div>
-        )}
-      </div>
-
-      <div className="ml-8">
+      <div className="ml-12 mt-2">
         {isEditMode ? (
           <CommentForm
             onSubmit={onSubmitEdit}
@@ -225,21 +224,28 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
             loading={updateCommentMutation.isLoading}
           />
         ) : (
-          <p>{comment.text}</p>
+          <p className="text-base">{comment.text}</p>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-2 flex-wrap">
           <LikeControlComponent
             callbackFn={changeLikeForComment}
             likeValue={comment.likedByMe}
             likesCount={comment.commentLikesValue}
           />
-          <span
-            className="cursor-pointer "
-            onClick={() => setIsReplyMode(!isReplyMode)}
+          <button
+            className="motion-safe:hover:scale-110 duration-500"
+            onClick={() => toggleReplyMode(!isReplyMode)}
           >
-            Reply
-          </span>
+            <span className="text-base">
+              <i
+                className={`align-text-bottom ri-xl ${
+                  isReplyMode ? "ri-chat-1-fill text-primary" : "ri-chat-1-line"
+                }`}
+              />
+              Reply
+            </span>
+          </button>
         </div>
 
         {isReplyMode && (
@@ -250,27 +256,13 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
           />
         )}
 
-        {isCommentHaveChildren && !areChildrenOpen && (
-          <p
-            className={`
-                  "text-sm btn btn-link btn-xs hover:text-primary-focus  " 
-                  ${childrenCommentsQuery.isLoading ? "loading" : ""}
-                `}
-            onClick={() => setAreChildrenOpen(!areChildrenOpen)}
-          >
-            {comment.childrenCount} more replies
-          </p>
-        )}
-
-        {childrenCommentsQuery.isLoading && (
-          <p
-            className={`
-                  "text-sm btn loading btn-link btn-xs hover:text-primary-focus " 
-                `}
-          >
-            {comment.childrenCount} more replies
-          </p>
-        )}
+        <CommentFooter
+          areChildrenOpen={areChildrenOpen}
+          comment={comment}
+          commentLoadingStatus={childrenCommentsQuery.isLoading}
+          isCommentHaveChildren={isCommentHaveChildren}
+          setAreChildrenOpen={setAreChildrenOpen}
+        />
       </div>
 
       {childrenCommentsQuery.data?.map((comment) => (

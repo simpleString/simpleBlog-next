@@ -27,7 +27,9 @@ const CommentForm: React.FC<CommentFormProps> = ({
       <CustomTextarea
         name="text"
         autoFocus
-        className="bg-inherit"
+        className={`bg-inherit border overflow-hidden ${
+          error ? "border-red-600" : ""
+        }`}
         placeholder="Write your comment here..."
         value={text}
         onChange={(e) => setText(e.target.value)}

@@ -1,17 +1,28 @@
+import { Post, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
+type PostOutputType = Post & {
+  user: User;
+  likedByMe: number | undefined;
+};
+
 export const postRouter = createRouter()
   .query("posts", {
-    resolve({ ctx }) {
+    async resolve({ ctx }): Promise<PostOutputType[]> {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-      return ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId } } },
+      const posts = await ctx.prisma.post.findMany({
+        include: { user: true, likes: { where: { userId }, take: 1 } },
         orderBy: { createdAt: "desc" },
       });
+
+      return posts.map((post) => ({
+        ...post,
+        likedByMe: post.likes[0]?.isPositive,
+      }));
     },
   })
 
@@ -19,11 +30,11 @@ export const postRouter = createRouter()
     input: z.object({
       query: z.string(),
     }),
-    async resolve({ ctx, input }) {
+    async resolve({ ctx, input }): Promise<PostOutputType[]> {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       const posts = await ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId } } },
+        include: { user: true, likes: { where: { userId }, take: 1 } },
         where: { title: { contains: input.query } },
         orderBy: { createdAt: "desc" },
       });
@@ -39,21 +50,21 @@ export const postRouter = createRouter()
     input: z.object({
       postId: z.string().cuid(),
     }),
-    async resolve({ input, ctx }) {
+    async resolve({ input, ctx }): Promise<PostOutputType> {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
-      const postResult = await ctx.prisma.post.findFirst({
+      const postResult = await ctx.prisma.post.findFirstOrThrow({
         where: { id: input.postId },
         include: {
           likes: {
             where: { postId: input.postId, userId },
             take: 1,
           },
+          user: true,
         },
       });
 
-      if (!postResult) return postResult;
       return {
         ...postResult,
         likedByMe: postResult?.likes[0]?.isPositive,
@@ -140,7 +151,7 @@ export const postRouter = createRouter()
         input: z.object({
           title: z.string().min(5),
           text: z.string(),
-          image: z.string().url().or(z.string().max(0)),
+          image: z.string().url().nullable(),
         }),
         async resolve({ input, ctx }) {
           return ctx.prisma.post.create({
@@ -153,7 +164,7 @@ export const postRouter = createRouter()
           id: z.string().cuid(),
           title: z.string().min(5),
           text: z.string(),
-          image: z.string().url().or(z.string().max(0)),
+          image: z.string().url().nullable(),
         }),
         async resolve({ input, ctx }) {
           const post = await ctx.prisma.post.findFirst({

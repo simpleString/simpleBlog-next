@@ -32,3 +32,8 @@
     width: auto;
   }
 }
+
+html,
+body {
+  overflow-x: hidden;
+}

@@ -6,11 +6,19 @@ import { PostComponent } from "./PostComponent";
 
 const PostList = () => {
   const { data: posts, isLoading: postLoading } = trpc.useQuery(["post.posts"]);
-  const scrollPosition = useScrollState((state) => state.scrollPosition);
+  const { scrollPosition, updateScrollPosition } = useScrollState();
 
   useEffect(() => {
+    const onScroll = (e: Event) => {
+      const window = e.currentTarget as Window;
+      updateScrollPosition(window.scrollY);
+    };
+
     window.scrollTo(0, scrollPosition);
-  }, [scrollPosition]);
+    window.addEventListener("scroll", onScroll);
+
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [scrollPosition, updateScrollPosition]);
 
   return (
     <div className="md:p-4">

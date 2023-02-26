@@ -1,13 +1,12 @@
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { FormEvent, ReactElement, useEffect, useState } from "react";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { SupabaseBackets } from "../constants/supabase";
 import { Layout } from "../layouts/Layout";
+import { fileUploader } from "../utils/fileUploader";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
-import { supabase } from "../utils/supabaseClient";
-import { useSession } from "next-auth/react";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { fileUploader } from "../utils/fileUploader";
-import { SupabaseBackets } from "../constants/supabase";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
   useSession({ required: true });

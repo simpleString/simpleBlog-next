@@ -30,7 +30,7 @@ const UpdatePost: NextPageWithLayout<React.FC> = () => {
   }: {
     title: string;
     text: string;
-    image: string;
+    image: string | null;
   }) => {
     if (!post) return;
     updatePostMutation.mutateAsync({ id: post.id, image, text, title });

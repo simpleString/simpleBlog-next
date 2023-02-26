@@ -1,7 +1,14 @@
+import { Comment, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
+
+type CommentOutputType = Comment & {
+  user: User;
+  isAuthorOfPost: boolean;
+  likedByMe: number | undefined;
+};
 
 export const commentRouter = createRouter()
   .query("getCommentsByPostId", {
@@ -9,7 +16,7 @@ export const commentRouter = createRouter()
       postId: z.string().cuid(),
       orderBy: z.enum(["best", "new"]),
     }),
-    async resolve({ ctx, input }) {
+    async resolve({ ctx, input }): Promise<CommentOutputType[]> {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       let comments;
@@ -18,6 +25,7 @@ export const commentRouter = createRouter()
           where: { postId: input.postId, mainCommentId: null },
           include: {
             user: true,
+            post: true,
             commentLikes: { where: { userId }, take: 1 },
           },
           orderBy: { updatedAt: "desc" },
@@ -25,12 +33,18 @@ export const commentRouter = createRouter()
       } else {
         comments = await ctx.prisma.comment.findMany({
           where: { postId: input.postId, mainCommentId: null },
-          include: { user: true, commentLikes: { where: { userId }, take: 1 } },
+          include: {
+            user: true,
+            post: true,
+            commentLikes: { where: { userId }, take: 1 },
+          },
           orderBy: { commentLikesValue: "desc" },
         });
       }
+
       return comments.map((comment) => ({
         ...comment,
+        isAuthorOfPost: comment.post.userId === comment.userId,
         likedByMe: comment.commentLikes[0]?.isPositive,
       }));
     },
@@ -40,25 +54,26 @@ export const commentRouter = createRouter()
       mainCommentId: z.string().cuid(),
       orderBy: z.enum(["best", "new"]),
     }),
-    async resolve({ input, ctx }) {
+    async resolve({ input, ctx }): Promise<CommentOutputType[]> {
       let comments;
 
       if (input.orderBy === "new") {
         comments = await ctx.prisma.comment.findMany({
           where: { mainCommentId: input.mainCommentId },
-          include: { user: true, commentLikes: true },
+          include: { user: true, post: true, commentLikes: true },
           orderBy: { updatedAt: "desc" },
         });
       } else {
         comments = await ctx.prisma.comment.findMany({
           where: { mainCommentId: input.mainCommentId },
-          include: { user: true, commentLikes: true },
+          include: { user: true, post: true, commentLikes: true },
           orderBy: { commentLikesValue: "desc" },
         });
       }
 
       return comments.map((comment) => ({
         ...comment,
+        isAuthorOfPost: comment.post.userId === comment.userId,
         likedByMe: comment.commentLikes[0]?.isPositive,
       }));
     },
@@ -77,7 +92,7 @@ export const commentRouter = createRouter()
           },
           { required_error: "test" }
         ),
-        async resolve({ input, ctx }) {
+        async resolve({ input, ctx }): Promise<CommentOutputType> {
           return ctx.prisma.$transaction(async (prisma) => {
             const newComment = await prisma.comment.create({
               data: {
@@ -86,7 +101,7 @@ export const commentRouter = createRouter()
                 userId: ctx.session.user.id,
                 postId: input.postId,
               },
-              include: { user: true, commentLikes: true },
+              include: { user: true, commentLikes: true, post: true },
             });
 
             await ctx.prisma.post.update({
@@ -106,6 +121,7 @@ export const commentRouter = createRouter()
             }
             return {
               ...newComment,
+              isAuthorOfPost: newComment.post.userId === newComment.userId,
               likedByMe: newComment.commentLikes[0]?.isPositive,
             };
           });
@@ -117,7 +133,7 @@ export const commentRouter = createRouter()
           text: z.string().min(1),
           postId: z.string().cuid(),
         }),
-        async resolve({ input, ctx }) {
+        async resolve({ input, ctx }): Promise<CommentOutputType> {
           const comment = await ctx.prisma.comment.findFirst({
             where: {
               userId: ctx.session.user.id,
@@ -142,11 +158,14 @@ export const commentRouter = createRouter()
             include: {
               user: true,
               commentLikes: true,
+              post: true,
             },
           });
 
           return {
             ...updatedComment,
+            isAuthorOfPost:
+              updatedComment.post.userId === updatedComment.userId,
             likedByMe: updatedComment.commentLikes[0]?.isPositive,
           };
         },

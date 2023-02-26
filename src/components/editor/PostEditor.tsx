@@ -15,7 +15,7 @@ import { MenuBar } from "./MenuBar";
 type PostEditorProps = {
   title: string;
   text: string;
-  image: string;
+  image?: string | null;
   savePost: ({
     title,
     text,
@@ -23,22 +23,22 @@ type PostEditorProps = {
   }: {
     title: string;
     text: string;
-    image: string;
+    image: string | null;
   }) => void;
 };
 
 const PostEditor: React.FC<PostEditorProps> = ({
   text,
   title,
-  image,
+  image = null,
   savePost,
 }) => {
   const [content, setContent] = useState(text);
   const [postTitle, setPostTitle] = useState(title);
-  const [postImage, setPostImage] = useState(image);
+  const [postImage, setPostImage] = useState<null | string>(image);
 
   const onButtonClearImageClick = () => {
-    setPostImage("");
+    setPostImage(null);
   };
 
   const onFileChange = async (e: FormEvent<HTMLInputElement>) => {

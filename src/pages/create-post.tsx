@@ -25,7 +25,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   }: {
     title: string;
     text: string;
-    image: string;
+    image: string | null;
   }) => {
     await createPostMutation.mutateAsync({
       text,
@@ -40,7 +40,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
 
   return (
     <>
-      <PostEditor image={""} text={""} title={""} savePost={savePost} />
+      <PostEditor text={""} title={""} savePost={savePost} />
     </>
   );
 };

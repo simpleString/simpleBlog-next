@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
 import { useOrderCommentStore } from "../../store";
 import { trpc } from "../../utils/trpc";
@@ -25,7 +24,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
-      utils.setQueryData(["post.post", { postId }], (old) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      utils.setQueryData(["post.post", { postId }], (old: any) =>
         old ? { ...old, commentsCount: old.commentsCount + 1 } : null
       );
 
@@ -71,14 +71,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             <Dropdown
               buttonComponentClasses="btn "
               childrenClasses="p-0 w-36 menu-compact"
-              buttonComponent={<div className="">Select order</div>}
+              buttonComponent={<span>Sort by: {order}</span>}
               dropdownClasses="dropdown-end"
             >
-              <li className="w-36">
-                <span onClick={() => changeOrder("new")}>New</span>
+              <li className="pt-2">
+                <span
+                  className={`${order === "new" ? "active" : ""}`}
+                  onClick={() => changeOrder("new")}
+                >
+                  New
+                </span>
               </li>
               <li>
-                <span onClick={() => changeOrder("best")}>Best</span>
+                <span
+                  className={`${order === "best" ? "active" : ""}`}
+                  onClick={() => changeOrder("best")}
+                >
+                  Best
+                </span>
               </li>
             </Dropdown>
           </div>

@@ -38,10 +38,12 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
 
   return (
     <div className="flex p-4 pb-2">
-      <div className="motion-safe:hover:scale-110 duration-500 flex group space-x-1 hover:text-primary">
-        <i className="ri-chat-1-line" />
-        <span>{post?.commentsCount}</span>
-      </div>
+      <NextLink href={`/post/${post.id}#comments`}>
+        <a className="motion-safe:hover:scale-110 duration-500 flex group space-x-1 hover:text-primary">
+          <i className="ri-chat-1-line" />
+          <span>{post?.commentsCount}</span>
+        </a>
+      </NextLink>
       {isUserOwner && isShowEditSection && (
         <NextLink
           href={{ pathname: "/update-post", query: { id: post?.id } }}

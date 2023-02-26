@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
 export const fileRouter = createProtectedRouter().mutation("uploadImage", {

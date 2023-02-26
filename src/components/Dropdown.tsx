@@ -39,7 +39,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         onBlur={() => {
           setMenuOpened(false);
         }}
-        onClick={(e) => {
+        onClick={() => {
           if (menuOpened) {
             setMenuOpened(false);
           } else {
