@@ -25,6 +25,7 @@ const CommentHeader: React.FC<CommentHeaderType> = ({
         width="32"
         height="32"
         className="rounded-full"
+        loading="lazy"
       />
 
       <div className="flex space-x-2">

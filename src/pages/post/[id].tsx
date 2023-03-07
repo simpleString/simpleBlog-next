@@ -67,6 +67,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
                   layout="responsive"
                   width="640"
                   height="360"
+                  loading="lazy"
                 />
               </div>
             )}

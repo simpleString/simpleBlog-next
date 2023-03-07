@@ -17,6 +17,7 @@ const PostImage: React.FC<PostImageProps> = ({ postId, image }) => {
           layout="responsive"
           width="640"
           height="360"
+          loading="lazy"
         />
       </div>
     </NextLink>

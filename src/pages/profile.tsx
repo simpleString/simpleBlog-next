@@ -61,6 +61,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
                 src={me.data?.image ?? "/user-placeholder.jpg"}
                 alt="Profile image"
                 layout="fill"
+                loading="lazy"
               />
             </div>
           </div>

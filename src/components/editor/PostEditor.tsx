@@ -119,6 +119,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
                 width="200px"
                 height="200px"
                 objectFit="fill"
+                loading="lazy"
               />
             </div>
           )}

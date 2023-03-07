@@ -20,6 +20,7 @@ export const postRouter = createRouter()
     input: z.object({
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.string().cuid().nullish(),
+      orderBy: z.enum(["best", "new"]),
     }),
     async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
       const limit = input.limit ?? 50;
@@ -35,7 +36,10 @@ export const postRouter = createRouter()
           likes: { where: { userId }, take: 1 },
           bookmarks: { where: { userId }, take: 1 },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: {
+          ...(input.orderBy === "best" && { likesValue: "desc" }),
+          ...(input.orderBy === "new" && { createdAt: "desc" }),
+        },
       });
 
       let nextCursor: typeof cursor = undefined;

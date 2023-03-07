@@ -21,6 +21,7 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
             width="48"
             alt="Not image"
             height="48"
+            loading="lazy"
           />
         </div>
       }

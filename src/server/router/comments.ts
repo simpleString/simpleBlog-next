@@ -19,28 +19,18 @@ export const commentRouter = createRouter()
     async resolve({ ctx, input }): Promise<CommentOutputType[]> {
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-      let comments;
-      if (input.orderBy === "new") {
-        comments = await ctx.prisma.comment.findMany({
-          where: { postId: input.postId, mainCommentId: null },
-          include: {
-            user: true,
-            post: true,
-            commentLikes: { where: { userId }, take: 1 },
-          },
-          orderBy: { updatedAt: "desc" },
-        });
-      } else {
-        comments = await ctx.prisma.comment.findMany({
-          where: { postId: input.postId, mainCommentId: null },
-          include: {
-            user: true,
-            post: true,
-            commentLikes: { where: { userId }, take: 1 },
-          },
-          orderBy: { commentLikesValue: "desc" },
-        });
-      }
+      const comments = await ctx.prisma.comment.findMany({
+        where: { postId: input.postId, mainCommentId: null },
+        include: {
+          user: true,
+          post: true,
+          commentLikes: { where: { userId }, take: 1 },
+        },
+        orderBy: {
+          ...(input.orderBy === "best" && { commentLikesValue: "desc" }),
+          ...(input.orderBy === "new" && { updatedAt: "desc" }),
+        },
+      });
 
       return comments.map((comment) => ({
         ...comment,
@@ -55,21 +45,14 @@ export const commentRouter = createRouter()
       orderBy: z.enum(["best", "new"]),
     }),
     async resolve({ input, ctx }): Promise<CommentOutputType[]> {
-      let comments;
-
-      if (input.orderBy === "new") {
-        comments = await ctx.prisma.comment.findMany({
-          where: { mainCommentId: input.mainCommentId },
-          include: { user: true, post: true, commentLikes: true },
-          orderBy: { updatedAt: "desc" },
-        });
-      } else {
-        comments = await ctx.prisma.comment.findMany({
-          where: { mainCommentId: input.mainCommentId },
-          include: { user: true, post: true, commentLikes: true },
-          orderBy: { commentLikesValue: "desc" },
-        });
-      }
+      const comments = await ctx.prisma.comment.findMany({
+        where: { mainCommentId: input.mainCommentId },
+        include: { user: true, post: true, commentLikes: true },
+        orderBy: {
+          ...(input.orderBy === "best" && { commentLikesValue: "desc" }),
+          ...(input.orderBy === "new" && { updatedAt: "desc" }),
+        },
+      });
 
       return comments.map((comment) => ({
         ...comment,
