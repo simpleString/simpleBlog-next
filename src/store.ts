@@ -1,11 +1,6 @@
 import { create } from "zustand";
-import { inferQueryInput } from "./utils/trpc";
 import { persist } from "zustand/middleware";
-
-type OrderByType = Pick<
-  inferQueryInput<"comment.getCommentsByPostId">,
-  "orderBy"
->["orderBy"];
+import { OrderByType } from "./types/frontend";
 
 type OrderCommentStore = {
   order: OrderByType;

@@ -1,8 +1,10 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { useCreateCommentMutation } from "../../hooks/api/useCreateCommentMutation";
+import { useLikeCommentMutation } from "../../hooks/api/useLikeCommentMutation";
+import { useUpdateCommentMutation } from "../../hooks/api/useUpdateCommentMutation";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
 import { useOrderCommentStore } from "../../store";
-import { getLikeValue } from "../../utils/getLikeValue";
 import { getRelativeTime } from "../../utils/getRelativeTime";
 import { inferQueryOutput, trpc } from "../../utils/trpc";
 import LikeControlComponent from "../LikeControlComponent";
@@ -11,7 +13,7 @@ import CommentForm from "./CommentForm";
 import CommentHeader from "./CommentHeader";
 import CommentRow from "./CommentRow";
 
-type commentType = inferQueryOutput<"comment.getCommentsByPostId">[0];
+type commentType = inferQueryOutput<"comment.getComments">[0];
 
 type MainPostCommentProps = {
   comment: commentType;
@@ -31,132 +33,15 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
 
   const order = useOrderCommentStore((store) => store.order);
 
-  const utils = trpc.useContext();
-
   const childrenCommentsQuery = trpc.useQuery(
-    [
-      "comment.getAllCommentsByMainCommentId",
-      { mainCommentId: comment.id, orderBy: order },
-    ],
+    ["comment.getComments", { mainCommentId: comment.id, orderBy: order }],
     { enabled: areChildrenOpen }
   );
 
-  const updateCommentMutation = trpc.useMutation(["comment.updateComment"], {
-    onSuccess: (data) => {
-      utils.setQueryData(
-        [
-          "comment.getCommentsByPostId",
-          { postId: comment.postId, orderBy: order },
-        ],
-        (old) => {
-          if (!old) return [];
-          return old?.map((comment) => {
-            if (data.id === comment.id) {
-              return data;
-            }
-            return comment;
-          });
-        }
-      );
-    },
-  });
-  const createCommentMutation = trpc.useMutation(["comment.createComment"], {
-    onSuccess: async (data) => {
-      utils.setQueryData(
-        ["post.post", { postId: comment.postId }],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (old: any) =>
-          old ? { ...old, commentsCount: old.commentsCount + 1 } : null
-      );
-      utils.setQueryData(
-        [
-          "comment.getCommentsByPostId",
-          { orderBy: order, postId: comment.postId },
-        ],
-        (old) => {
-          if (!old) return [];
-          return old?.map((oldComment) => {
-            if (oldComment.id === comment.id)
-              return {
-                ...oldComment,
-                childrenCount: oldComment.childrenCount + 1,
-              };
+  const updateCommentMutation = useUpdateCommentMutation({ comment, order });
 
-            return oldComment;
-          });
-        }
-      );
-      utils.setQueryData(
-        [
-          "comment.getAllCommentsByMainCommentId",
-          { mainCommentId: comment.id, orderBy: order },
-        ],
-        (old) => {
-          if (!old) return [data];
-          return [data, ...old];
-        }
-      );
-      setAreChildrenOpen(true);
-    },
-  });
-
-  const commentLikeMutation = trpc.useMutation(["comment.like"], {
-    onMutate: async (data) => {
-      await utils.cancelQuery([
-        "comment.getCommentsByPostId",
-        { postId: comment.postId, orderBy: order },
-      ]);
-
-      const previousComments = utils.getQueryData([
-        "comment.getCommentsByPostId",
-        { postId: comment.postId, orderBy: order },
-      ]);
-
-      if (!previousComments) return;
-
-      console.log(previousComments);
-
-      const optimisticUpdatedComments = previousComments.map((oldComment) => {
-        if (oldComment.id === data.commentId) {
-          const likesValuesObject = getLikeValue({
-            previousLikeValue: oldComment.likedByMe,
-            inputLikeBooleanValue: data.isPositive,
-          });
-          return {
-            ...oldComment,
-            commentLikesValue:
-              comment.commentLikesValue + likesValuesObject.likeValueChange,
-            likedByMe: likesValuesObject.likeValue,
-          } as never;
-        }
-        return oldComment;
-      });
-
-      console.log(optimisticUpdatedComments);
-
-      utils.setQueryData(
-        [
-          "comment.getCommentsByPostId",
-          { postId: comment.postId, orderBy: order },
-        ],
-        optimisticUpdatedComments
-      );
-
-      return { previousComments };
-    },
-
-    onError(_err, _newData, context) {
-      if (!context) return;
-
-      utils.setQueryData(
-        [
-          "comment.getCommentsByPostId",
-          { postId: comment.postId, orderBy: order },
-        ],
-        context.previousComments
-      );
-    },
-  });
+  const createCommentMutation = useCreateCommentMutation({ comment, order });
+  const commentLikeMutation = useLikeCommentMutation({ comment, order });
 
   const onSubmitEdit = async (text: string) => {
     checkIsAuth();
@@ -176,6 +61,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
       text,
       mainCommentId: comment.id,
     });
+    setAreChildrenOpen(true);
     toggleReplyMode(false);
     return Promise.resolve();
   };

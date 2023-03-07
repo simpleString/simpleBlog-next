@@ -11,16 +11,31 @@ type CommentOutputType = Comment & {
 };
 
 export const commentRouter = createRouter()
-  .query("getCommentsByPostId", {
+  .query("getComments", {
     input: z.object({
-      postId: z.string().cuid(),
+      postId: z.string().cuid().optional(),
       orderBy: z.enum(["best", "new"]),
+      mainCommentId: z.string().cuid().optional(),
     }),
     async resolve({ ctx, input }): Promise<CommentOutputType[]> {
+      if (!input.postId && !input.mainCommentId)
+        throw new trpc.TRPCError({
+          code: "PARSE_ERROR",
+          message: "postId or mainCommentId must be set",
+        });
+      if (input.postId && input.mainCommentId)
+        throw new trpc.TRPCError({
+          code: "PARSE_ERROR",
+          message: "Set postId or mainCommentId. Not together",
+        });
+
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       const comments = await ctx.prisma.comment.findMany({
-        where: { postId: input.postId, mainCommentId: null },
+        where: {
+          postId: input.postId,
+          mainCommentId: !input.mainCommentId ? null : input.mainCommentId,
+        },
         include: {
           user: true,
           post: true,
@@ -32,27 +47,7 @@ export const commentRouter = createRouter()
         },
       });
 
-      return comments.map((comment) => ({
-        ...comment,
-        isAuthorOfPost: comment.post.userId === comment.userId,
-        likedByMe: comment.commentLikes[0]?.isPositive,
-      }));
-    },
-  })
-  .query("getAllCommentsByMainCommentId", {
-    input: z.object({
-      mainCommentId: z.string().cuid(),
-      orderBy: z.enum(["best", "new"]),
-    }),
-    async resolve({ input, ctx }): Promise<CommentOutputType[]> {
-      const comments = await ctx.prisma.comment.findMany({
-        where: { mainCommentId: input.mainCommentId },
-        include: { user: true, post: true, commentLikes: true },
-        orderBy: {
-          ...(input.orderBy === "best" && { commentLikesValue: "desc" }),
-          ...(input.orderBy === "new" && { updatedAt: "desc" }),
-        },
-      });
+      console.log(comments);
 
       return comments.map((comment) => ({
         ...comment,
@@ -162,8 +157,6 @@ export const commentRouter = createRouter()
           const like = await ctx.prisma.commentLike.findFirst({
             where: { commentId: input.commentId, userId: ctx.session.user.id },
           });
-
-          console.log(input);
 
           if (like) {
             let likeValueChange = 0;

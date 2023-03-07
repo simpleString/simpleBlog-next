@@ -30,7 +30,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
       );
 
       utils.setQueryData(
-        ["comment.getCommentsByPostId", { postId, orderBy: order }],
+        ["comment.getComments", { postId, orderBy: order }],
         (old) => {
           if (!old) return [];
           return [data, ...old];
@@ -40,7 +40,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   });
 
   const { data: comments, isLoading } = trpc.useQuery([
-    "comment.getCommentsByPostId",
+    "comment.getComments",
     { postId, orderBy: order },
   ]);
 

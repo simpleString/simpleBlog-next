@@ -1,6 +1,6 @@
 import NextImage from "next/image";
 import { inferQueryOutput } from "../../utils/trpc";
-type commentType = inferQueryOutput<"comment.getAllCommentsByMainCommentId">[0];
+type commentType = inferQueryOutput<"comment.getComments">[0];
 
 type CommentHeaderType = {
   toggleEditMode: (status: boolean) => void;
