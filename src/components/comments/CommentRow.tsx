@@ -70,9 +70,9 @@ const CommentRow: React.FC<CommentRowProps> = ({
     onSuccess: async (data) => {
       if (!comment.mainCommentId) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       utils.setQueryData(
         ["post.post", { postId: comment.postId }],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (old: any) =>
           old ? { ...old, commentsCount: old.commentsCount + 1 } : null
       );

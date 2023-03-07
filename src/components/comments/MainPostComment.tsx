@@ -62,9 +62,9 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
   });
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       utils.setQueryData(
         ["post.post", { postId: comment.postId }],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (old: any) =>
           old ? { ...old, commentsCount: old.commentsCount + 1 } : null
       );

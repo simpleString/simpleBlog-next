@@ -28,8 +28,20 @@ model Post {
   commentsCount Int        @default(0)
   comments      Comment[]
 
+  bookmarks Bookmark[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Bookmark {
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  @@id([postId, userId])
+
 }
 
 model Comment {
@@ -112,6 +124,8 @@ model User {
   likes       Like[]
   comments    Comment[]
   commentLikes CommentLike[]
+
+  bookmarks Bookmark[]
 }
 
 model VerificationToken {

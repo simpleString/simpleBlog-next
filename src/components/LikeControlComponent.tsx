@@ -18,28 +18,26 @@ const LikeControlComponent: React.FC<
 
   return (
     <div className={twMerge("flex items-center text-base", props.className)}>
-      <button>
-        <i
-          onClick={() => changeLike(false)}
-          className={`${
-            likeIsNegative
-              ? "text-red-700"
-              : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
-          }
-   cursor-pointer ri-arrow-down-s-line text-2xl`}
-        />
+      <button
+        className={`${
+          likeIsNegative
+            ? "text-red-700"
+            : "hover:text-red-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:translate-y-1.5"
+        }`}
+        onClick={() => changeLike(false)}
+      >
+        <i className="ri-arrow-down-s-line text-2xl" />
       </button>
       <span>{likesCount}</span>
-      <button>
-        <i
-          onClick={() => changeLike(true)}
-          className={`${
-            likeIsPositive
-              ? "text-green-700"
-              : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
-          }
-  cursor-pointer ri-arrow-up-s-line text-2xl`}
-        />
+      <button
+        className={`${
+          likeIsPositive
+            ? "text-green-700"
+            : "hover:text-green-900  motion-safe:hover:scale-105 duration-500 motion-safe:hover:-translate-y-1.5"
+        }`}
+        onClick={() => changeLike(true)}
+      >
+        <i className="ri-arrow-up-s-line text-2xl" />
       </button>
     </div>
   );

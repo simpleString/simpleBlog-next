@@ -1,32 +1,35 @@
 import NextImage from "next/image";
-import { useMemo } from "react";
+import { getRelativeTime } from "../../utils/getRelativeTime";
 
 type PostComponentHeaderProps = {
   image: string | null;
-  userName: string;
+  username: string;
   date: Date;
 };
 
 const PostHeader: React.FC<PostComponentHeaderProps> = ({
   image,
-  userName,
+  username,
   date,
 }) => {
-  const formattedDate = useMemo(() => date.toLocaleDateString(), [date]);
+  const formattedDate = getRelativeTime(date);
 
   return (
-    <div className="flex p-4">
-      <div className="mr-6">
+    <div className="flex space-x-8 p-2">
+      <div className="flex justify-center space-x-2">
         <NextImage
           alt="Avatar"
           src={image || "/user-placeholder.jpg"}
-          width="24"
-          height="24"
-          className="rounded"
+          width={22}
+          height={22}
+          className="rounded-full"
+          loading="lazy"
         />
+        <span>{username}</span>
       </div>
-      <div>{userName}</div>
-      <div className="ml-auto">{formattedDate}</div>
+      <div className="tooltip z-50" data-tip={date}>
+        <span>{formattedDate}</span>
+      </div>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { createProtectedRouter } from "./protected-router";
 type PostOutputType = Post & {
   user: User;
   likedByMe: number | undefined;
+  bookmarked: boolean;
 };
 
 export const postRouter = createRouter()
@@ -15,12 +16,17 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       const posts = await ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId }, take: 1 } },
+        include: {
+          user: true,
+          likes: { where: { userId }, take: 1 },
+          bookmarks: { where: { userId }, take: 1 },
+        },
         orderBy: { createdAt: "desc" },
       });
 
       return posts.map((post) => ({
         ...post,
+        bookmarked: post.bookmarks[0] ? true : false,
         likedByMe: post.likes[0]?.isPositive,
       }));
     },
@@ -34,13 +40,18 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       const posts = await ctx.prisma.post.findMany({
-        include: { user: true, likes: { where: { userId }, take: 1 } },
+        include: {
+          user: true,
+          likes: { where: { userId }, take: 1 },
+          bookmarks: { where: { userId }, take: 1 },
+        },
         where: { title: { contains: input.query } },
         orderBy: { createdAt: "desc" },
       });
 
       return posts.map((post) => ({
         ...post,
+        bookmarked: post.bookmarks[0] ? true : false,
         likedByMe: post.likes[0]?.isPositive,
       }));
     },
@@ -54,20 +65,22 @@ export const postRouter = createRouter()
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
 
-      const postResult = await ctx.prisma.post.findFirstOrThrow({
+      const post = await ctx.prisma.post.findFirstOrThrow({
         where: { id: input.postId },
         include: {
           likes: {
             where: { postId: input.postId, userId },
             take: 1,
           },
+          bookmarks: { where: { userId }, take: 1 },
           user: true,
         },
       });
 
       return {
-        ...postResult,
-        likedByMe: postResult?.likes[0]?.isPositive,
+        ...post,
+        bookmarked: post.bookmarks[0] ? true : false,
+        likedByMe: post?.likes[0]?.isPositive,
       };
     },
   })
@@ -81,69 +94,71 @@ export const postRouter = createRouter()
           isPositive: z.boolean(),
         }),
         async resolve({ input, ctx }) {
-          const like = await ctx.prisma.like.findFirst({
-            where: { postId: input.postId, userId: ctx.session.user.id },
-          });
-
-          if (like) {
-            let likeValueChange = 0;
-            let likeValue = 0;
-            if (input.isPositive) {
-              if (like.isPositive === 1) {
-                likeValue = 0;
-                likeValueChange = -1;
-              } else if (like.isPositive === 0) {
-                likeValue = 1;
-                likeValueChange = 1;
-              } else {
-                likeValue = 1;
-                likeValueChange = 2;
-              }
-            } else {
-              if (like.isPositive === 1) {
-                likeValue = -1;
-                likeValueChange = -2;
-              } else if (like.isPositive === 0) {
-                likeValue = -1;
-                likeValueChange = -1;
-              } else {
-                likeValue = 0;
-                likeValueChange = 1;
-              }
-            }
-
-            return ctx.prisma.like.update({
-              where: {
-                postId_userId: {
-                  postId: input.postId,
-                  userId: ctx.session.user.id,
-                },
-              },
-              data: {
-                isPositive: likeValue,
-                post: {
-                  update: {
-                    likesValue: { increment: likeValueChange },
-                  },
-                },
-              },
+          return ctx.prisma?.$transaction(async (prisma) => {
+            const like = await prisma.like.findFirst({
+              where: { postId: input.postId, userId: ctx.session.user.id },
             });
-          } else {
-            return ctx.prisma.post.update({
-              where: {
-                id: input.postId,
-              },
-              data: {
-                likesValue: { increment: input.isPositive ? 1 : -1 },
-                likes: {
-                  create: {
-                    isPositive: input.isPositive ? 1 : -1,
+
+            if (like) {
+              let likeValueChange = 0;
+              let likeValue = 0;
+              if (input.isPositive) {
+                if (like.isPositive === 1) {
+                  likeValue = 0;
+                  likeValueChange = -1;
+                } else if (like.isPositive === 0) {
+                  likeValue = 1;
+                  likeValueChange = 1;
+                } else {
+                  likeValue = 1;
+                  likeValueChange = 2;
+                }
+              } else {
+                if (like.isPositive === 1) {
+                  likeValue = -1;
+                  likeValueChange = -2;
+                } else if (like.isPositive === 0) {
+                  likeValue = -1;
+                  likeValueChange = -1;
+                } else {
+                  likeValue = 0;
+                  likeValueChange = 1;
+                }
+              }
+
+              return prisma.like.update({
+                where: {
+                  postId_userId: {
+                    postId: input.postId,
                     userId: ctx.session.user.id,
                   },
                 },
-              },
-            });
-          }
+                data: {
+                  isPositive: likeValue,
+                  post: {
+                    update: {
+                      likesValue: { increment: likeValueChange },
+                    },
+                  },
+                },
+              });
+            } else {
+              return prisma.post.update({
+                where: {
+                  id: input.postId,
+                },
+                data: {
+                  likesValue: { increment: input.isPositive ? 1 : -1 },
+                  likes: {
+                    create: {
+                      isPositive: input.isPositive ? 1 : -1,
+                      userId: ctx.session.user.id,
+                    },
+                  },
+                },
+              });
+            }
+          });
         },
       })
 
@@ -182,6 +197,35 @@ export const postRouter = createRouter()
             where: { id: input.id },
             data: { ...input },
           });
+        },
+      })
+      .mutation("bookmark", {
+        input: z.object({
+          postId: z.string().cuid(),
+        }),
+        output: z.object({
+          bookmarked: z.boolean(),
+        }),
+        async resolve({ input, ctx }) {
+          try {
+            await ctx.prisma.bookmark.create({
+              data: { postId: input.postId, userId: ctx.session.user.id },
+            });
+            return { bookmarked: true };
+          } catch (error: any) {
+            if (error.code !== "P2002")
+              throw new trpc.TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+            //if bookmark exist delete it
+            await ctx.prisma.bookmark.delete({
+              where: {
+                postId_userId: {
+                  postId: input.postId,
+                  userId: ctx.session.user.id,
+                },
+              },
+            });
+            return { bookmarked: false };
+          }
         },
       })
   );

@@ -9,7 +9,9 @@ import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
 import NextImage from "next/image";
 import { getRelativeTime } from "../../utils/getRelativeTime";
+import PostHeader from "../../components/posts/PostHeader";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const HeadBodyGrid = (props: any) => (
   <ContentLoader
     uniqueKey="post"
@@ -46,10 +48,6 @@ const Post: NextPageWithLayout<React.FC> = () => {
     if (!isChildRendered) setIsChildRendered(isOnScreen);
   }, [isChildRendered, isOnScreen]);
 
-  const formattedDate = postQuery.data?.createdAt
-    ? getRelativeTime(postQuery.data.createdAt)
-    : "";
-
   return (
     <div className="space-y-4 sm:p-4">
       <div className="flex flex-col shadow">
@@ -57,21 +55,11 @@ const Post: NextPageWithLayout<React.FC> = () => {
           <HeadBodyGrid className="min-w-full" />
         ) : (
           <>
-            <div className="flex space-x-8 p-2">
-              <div className="flex justify-center space-x-2">
-                <NextImage
-                  alt="Avatar"
-                  src={postQuery.data.user.image || "/user-placeholder.jpg"}
-                  width={22}
-                  height={22}
-                  className="rounded-full"
-                />
-                <span>{postQuery.data.user.name}</span>
-              </div>
-              <div className="tooltip z-50" data-tip={postQuery.data.createdAt}>
-                <span>{formattedDate}</span>
-              </div>
-            </div>
+            <PostHeader
+              date={postQuery.data.createdAt}
+              image={postQuery.data.user.image}
+              username={postQuery.data.user.name}
+            />
             <h1 className="text-2xl font-bold p-2">{postQuery.data.title}</h1>
             {postQuery.data.image && (
               <div className="relative p-2">

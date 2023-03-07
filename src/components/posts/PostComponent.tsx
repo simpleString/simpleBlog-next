@@ -13,7 +13,7 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
       <PostHeader
         date={post.createdAt}
         image={post.user.image}
-        userName={post.user.name}
+        username={post.user.name}
       />
 
       <PostTitle title={post.title} postId={post.id} />
