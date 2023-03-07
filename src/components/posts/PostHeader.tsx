@@ -27,7 +27,7 @@ const PostHeader: React.FC<PostComponentHeaderProps> = ({
         />
         <span>{username}</span>
       </div>
-      <div className="tooltip z-50" data-tip={date}>
+      <div className="tooltip" data-tip={date}>
         <span>{formattedDate}</span>
       </div>
     </div>

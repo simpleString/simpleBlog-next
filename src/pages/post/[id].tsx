@@ -1,15 +1,14 @@
 import dynamic from "next/dynamic";
+import NextImage from "next/image";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useRef, useState } from "react";
 import ContentLoader from "react-content-loader";
 import InteractivePanel from "../../components/InteractivePanel";
+import PostHeader from "../../components/posts/PostHeader";
 import { useOnScreen } from "../../hooks/useOnScreen";
 import { Layout } from "../../layouts/Layout";
 import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
-import NextImage from "next/image";
-import { getRelativeTime } from "../../utils/getRelativeTime";
-import PostHeader from "../../components/posts/PostHeader";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const HeadBodyGrid = (props: any) => (

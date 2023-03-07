@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
-import { getLikeValue } from "../utils/getLikeValue";
 import { inferQueryOutput, trpc } from "../utils/trpc";
 import LikeControlComponent from "./LikeControlComponent";
 

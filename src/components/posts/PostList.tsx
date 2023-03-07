@@ -1,32 +1,41 @@
-import { useEffect } from "react";
-import { useScrollState } from "../../store";
+import { useEffect, useRef } from "react";
+import { useOnScreen } from "../../hooks/useOnScreen";
 import { trpc } from "../../utils/trpc";
 import LoadingSpinner from "../LoadingSpinner";
 import { PostComponent } from "./PostComponent";
 
 const PostList = () => {
-  const { data: posts, isLoading: postLoading } = trpc.useQuery(["post.posts"]);
-  const { scrollPosition, updateScrollPosition } = useScrollState();
+  const bottomOfPosts = useRef<HTMLDivElement>(null);
+  const isOnScreen = useOnScreen(bottomOfPosts);
+
+  const {
+    data,
+    isLoading: postLoading,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = trpc.useInfiniteQuery(["post.posts", { limit: 5 }], {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
 
   useEffect(() => {
-    const onScroll = (e: Event) => {
-      const window = e.currentTarget as Window;
-      updateScrollPosition(window.scrollY);
+    const handleFetchNextPage = () => {
+      fetchNextPage();
     };
 
-    window.scrollTo(0, scrollPosition);
-    window.addEventListener("scroll", onScroll);
-
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [scrollPosition, updateScrollPosition]);
+    if (isOnScreen) handleFetchNextPage();
+  }, [isOnScreen, fetchNextPage]);
 
   return (
     <div className="md:p-4">
       {postLoading ? (
         <LoadingSpinner />
       ) : (
-        posts?.map((post) => <PostComponent key={post.id} post={post} />)
+        data?.pages?.map((page) =>
+          page.posts.map((post) => <PostComponent key={post.id} post={post} />)
+        )
       )}
+      <div ref={bottomOfPosts} />
+      {isFetchingNextPage && <div className="text-center">Loading...</div>}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import "../styles/globals.css";
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
 import type { ReactElement, ReactNode } from "react";
+import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
   P,
@@ -25,6 +26,8 @@ const MyApp = ({
   pageProps: { session, ...pageProps },
 }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
+
+  usePreserveScroll();
 
   return (
     <SessionProvider session={session}>

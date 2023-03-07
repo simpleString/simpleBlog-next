@@ -10,12 +10,26 @@ type PostOutputType = Post & {
   bookmarked: boolean;
 };
 
+type InfinitePostsOutputType = {
+  posts: PostOutputType[];
+  nextCursor: string | undefined;
+};
+
 export const postRouter = createRouter()
   .query("posts", {
-    async resolve({ ctx }): Promise<PostOutputType[]> {
+    input: z.object({
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.string().cuid().nullish(),
+    }),
+    async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
+      const limit = input.limit ?? 50;
+      const { cursor } = input;
+
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
       const posts = await ctx.prisma.post.findMany({
+        take: limit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
         include: {
           user: true,
           likes: { where: { userId }, take: 1 },
@@ -24,11 +38,20 @@ export const postRouter = createRouter()
         orderBy: { createdAt: "desc" },
       });
 
-      return posts.map((post) => ({
-        ...post,
-        bookmarked: post.bookmarks[0] ? true : false,
-        likedByMe: post.likes[0]?.isPositive,
-      }));
+      let nextCursor: typeof cursor = undefined;
+      if (posts.length > limit) {
+        const nextItem = posts.pop();
+        if (nextItem) nextCursor = nextItem.id;
+      }
+
+      return {
+        posts: posts.map((post) => ({
+          ...post,
+          bookmarked: post.bookmarks[0] ? true : false,
+          likedByMe: post.likes[0]?.isPositive,
+        })),
+        nextCursor,
+      };
     },
   })
 
