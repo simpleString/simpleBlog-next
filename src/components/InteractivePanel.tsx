@@ -1,7 +1,9 @@
 import { useSession } from "next-auth/react";
 import NextLink from "next/link";
+import { useBookmarkMutation } from "../hooks/api/useBookmarkMutation";
+import { useLikePostMutation } from "../hooks/api/useLikePostMutation";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
-import { inferQueryOutput, trpc } from "../utils/trpc";
+import { inferQueryOutput } from "../utils/trpc";
 import LikeControlComponent from "./LikeControlComponent";
 
 type InteractivePanelProps = {
@@ -16,95 +18,11 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   callbackUrl,
 }) => {
   const session = useSession();
-  const utils = trpc.useContext();
   const checkIsAuth = useIsAuthCheck(callbackUrl);
 
-  const createLikeMutation = trpc.useMutation(["post.like"], {
-    // onMutate: async (data) => {
-    //   await utils.cancelQuery([
-    //     "post.post",
-    //     {
-    //       postId: post.id,
-    //     },
-    //   ]);
+  const createLikeMutation = useLikePostMutation({ post });
 
-    //   await utils.cancelQuery(["post.posts"]);
-    //   await utils.cancelQuery(["post.search"]);
-
-    //   const previousPost = utils.getQueryData([
-    //     "post.post",
-    //     { postId: post.id },
-    //   ]);
-
-    //   if (!previousPost) return;
-
-    //   const optimisticUpdatedPost = { ...previousPost };
-
-    //   const likesValuesObject = getLikeValue({
-    //     previousLikeValue: previousPost.likedByMe,
-    //     inputLikeBooleanValue: data.isPositive,
-    //   });
-
-    //   optimisticUpdatedPost.likedByMe = likesValuesObject.likeValue;
-    //   optimisticUpdatedPost.likesValue =
-    //     post.likesValue + likesValuesObject.likeValueChange;
-
-    //   utils.setQueryData(
-    //     ["post.post", { postId: post.id }],
-    //     optimisticUpdatedPost
-    //   );
-
-    //   const posts = utils.getQueryData(["post.posts"]);
-
-    //   console.log(posts);
-
-    //   if (posts)
-    //     utils.setQueryData(["post.posts"], (old) => {
-    //       if (!old) return [];
-    //       return old?.map((postI) => {
-    //         if (postI.id === post.id) {
-    //           return optimisticUpdatedPost;
-    //         }
-    //         return postI;
-    //       });
-    //     });
-
-    //   // utils.setQueryData(["post.search"], (old) => {
-    //   //   if (!old) return [];
-    //   //   return old.map((postI) => {
-    //   //     if (postI.id === post.id) {
-    //   //       return optimisticUpdatedPost;
-    //   //     }
-    //   //     return postI;
-    //   //   });
-    //   // });
-
-    //   return { previousPost };
-    // },
-
-    // onError(_err, _newData, context) {
-    //   if (!context) return;
-
-    //   utils.setQueryData(
-    //     ["post.post", { postId: post.id }],
-    //     context.previousPost
-    //   );
-    // },
-
-    onSuccess() {
-      utils.invalidateQueries(["post.post", { postId: post.id }]);
-      utils.invalidateQueries(["post.posts"]);
-      utils.invalidateQueries(["post.search"]);
-    },
-  });
-
-  const bookmarkMutation = trpc.useMutation(["post.bookmark"], {
-    onSuccess: (data) => {
-      utils.invalidateQueries(["post.post", { postId: post.id }]);
-      utils.invalidateQueries(["post.posts"]);
-      utils.invalidateQueries(["post.search"]);
-    },
-  });
+  const bookmarkMutation = useBookmarkMutation({ post });
 
   const changeLikeForPost = async (isPositive: boolean) => {
     checkIsAuth();

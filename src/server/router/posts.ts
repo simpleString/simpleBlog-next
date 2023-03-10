@@ -1,6 +1,7 @@
 import { Post, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
+import { getBestPosts } from "../services/getBestPosts";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
@@ -19,32 +20,57 @@ export const postRouter = createRouter()
   .query("posts", {
     input: z.object({
       limit: z.number().min(1).max(100).nullish(),
-      cursor: z.string().cuid().nullish(),
+      cursor: z.string().cuid().optional(),
       orderBy: z.enum(["best", "new"]),
+      skip: z.number().optional(),
     }),
     async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
       const limit = input.limit ?? 50;
-      const { cursor } = input;
+      const { cursor, skip } = input;
+
+      console.log(input);
 
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-      const posts = await ctx.prisma.post.findMany({
-        take: limit + 1,
-        cursor: cursor ? { id: cursor } : undefined,
-        include: {
-          user: true,
-          likes: { where: { userId }, take: 1 },
-          bookmarks: { where: { userId }, take: 1 },
-        },
-        orderBy: {
-          ...(input.orderBy === "best" && { likesValue: "desc" }),
-          ...(input.orderBy === "new" && { createdAt: "desc" }),
-        },
-      });
+
+      let posts;
+
+      if (input.orderBy === "new") {
+        posts = await ctx.prisma.post.findMany({
+          take: limit + 1,
+          skip,
+          cursor: cursor ? { id: cursor } : undefined,
+          include: {
+            user: true,
+            likes: { where: { userId }, take: 1 },
+            bookmarks: { where: { userId }, take: 1 },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+      } else {
+        // get best post
+        posts = await getBestPosts({
+          ctx,
+          limit: limit + 1,
+          skip: skip ?? 0,
+          cursor,
+        });
+      }
 
       let nextCursor: typeof cursor = undefined;
       if (posts.length > limit) {
-        const nextItem = posts.pop();
+        const newPosts = [...posts];
+        newPosts.sort((a, b) => {
+          if (a.createdAt < b.createdAt) return 1;
+          else if (a.createdAt > b.createdAt) return -1;
+          else return 0;
+        });
+        const nextItem = newPosts.pop();
+        posts = posts.filter((post) => {
+          return post.id !== nextItem?.id;
+        });
         if (nextItem) nextCursor = nextItem.id;
       }
 

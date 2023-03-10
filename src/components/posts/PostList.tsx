@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { POST_LIMIT } from "../../constants/frontend";
 import { useOnScreen } from "../../hooks/useOnScreen";
 import { useOrderPostStore } from "../../store";
@@ -11,7 +11,13 @@ const PostList = () => {
   const bottomOfPosts = useRef<HTMLDivElement>(null);
   const isOnScreen = useOnScreen(bottomOfPosts);
 
-  const { order, changeOrder } = useOrderPostStore();
+  const { order: notHydratedOrder, changeOrder } = useOrderPostStore();
+
+  //It's solve hydration error
+  const [order, setOrder] = useState<typeof notHydratedOrder>("best");
+  useEffect(() => {
+    setOrder(notHydratedOrder);
+  }, [notHydratedOrder]);
 
   const {
     data,

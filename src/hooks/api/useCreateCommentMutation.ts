@@ -1,4 +1,4 @@
-import { CommentOrderType } from "../../types/frontend";
+import { type CommentOrderType } from "../../types/frontend";
 import { generateMessageObject } from "../../utils/messageApiHelper";
 import { trpc } from "../../utils/trpc";
 

@@ -1,15 +1,12 @@
-import dynamic from "next/dynamic";
 import Head from "next/head";
 import { Footer } from "../components/Footer";
+import NavBar from "../components/Navbar/NavBar";
+
 interface LayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
   description?: string;
 }
-
-const NavBarWithNoSSR = dynamic(() => import("../components/Navbar/NavBar"), {
-  ssr: false,
-});
 
 export const Layout: React.FC<LayoutProps> = ({
   children,
@@ -24,7 +21,7 @@ export const Layout: React.FC<LayoutProps> = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <NavBarWithNoSSR />
+      <NavBar />
       <div className="flex mt-20">
         <div className="mx-auto w-full sm:max-w-2xl ">{children}</div>
       </div>
