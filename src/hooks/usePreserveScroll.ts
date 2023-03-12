@@ -18,6 +18,7 @@ export const usePreserveScroll = () => {
       scrollPositions.current[url] = window.scrollY;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onRouteChangeComplete = (url: any) => {
       if (isBack.current && scrollPositions.current[url]) {
         window.scroll({

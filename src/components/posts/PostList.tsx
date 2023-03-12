@@ -64,6 +64,14 @@ const PostList = () => {
               Best
             </span>
           </li>
+          <li>
+            <span
+              className={`${order === "hot" ? "active" : ""}`}
+              onClick={() => changeOrder("hot")}
+            >
+              Hot
+            </span>
+          </li>
         </Dropdown>
       </div>
       {postLoading ? (

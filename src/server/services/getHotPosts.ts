@@ -1,9 +1,12 @@
-import { Post, Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma, Post } from "@prisma/client";
 import { Session } from "next-auth";
-import { BEST_POST_THRESHOLD } from "../../constants/backend";
+import {
+  HOT_LIKES_THRESHOLD,
+  NEGATIVE_THRESHOLD_COMMENTS,
+} from "../../constants/backend";
 import { getSearchInterval } from "../utils/getSearchInterval";
 
-type getBestPostsType = {
+type getHotPostsType = {
   limit: number;
   skip: number;
   cursor: string | undefined;
@@ -17,21 +20,19 @@ type getBestPostsType = {
   };
 };
 
-type getBestPostsInDateType = Omit<getBestPostsType, "cursor"> & {
+type getHotPostsInDateType = Omit<getHotPostsType, "cursor"> & {
   date: Date;
   userId: string | undefined;
   searchInterval?: number;
   cursorPost: Post | null | undefined;
 };
 
-// Select posts with max likes in current day.
-// If not posts in current day, select yesterday, and etc.
-export const getBestPosts = async ({
-  limit,
-  skip,
+export const getHotPosts = async ({
   ctx,
   cursor,
-}: getBestPostsType) => {
+  limit,
+  skip,
+}: getHotPostsType) => {
   let userId: undefined | string;
   if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
   let cursorPost;
@@ -40,7 +41,7 @@ export const getBestPosts = async ({
 
   const currentDate = cursorPost?.createdAt ?? new Date();
 
-  const bestPosts = await getBestPostsInDate({
+  const hotPosts = await getHotPostsInDate({
     ctx,
     limit,
     skip,
@@ -50,18 +51,18 @@ export const getBestPosts = async ({
     cursorPost,
   });
 
-  return bestPosts;
+  return hotPosts;
 };
 
-const getBestPostsInDate = async ({
+const getHotPostsInDate = async ({
+  ctx,
+  cursorPost,
+  date,
   limit,
   skip,
-  date,
-  searchInterval,
-  ctx,
   userId,
-  cursorPost,
-}: getBestPostsInDateType) => {
+  searchInterval,
+}: getHotPostsInDateType) => {
   if (!searchInterval) {
     return [];
   }
@@ -70,12 +71,20 @@ const getBestPostsInDate = async ({
 
   yesterdayDate.setDate(date.getDate() - searchInterval);
 
+  // Get posts with likes that accept threshold rule.
   // Search without skip. Will remove extra post in js.
-  let bestPosts = await ctx.prisma.post.findMany({
+  let hotPosts = await ctx.prisma.post.findMany({
     take: limit,
+    cursor: cursorPost ? { id: cursorPost.id } : undefined,
     where: {
+      OR: [
+        {
+          likesValue: { lt: -HOT_LIKES_THRESHOLD },
+          commentsCount: { gt: NEGATIVE_THRESHOLD_COMMENTS },
+        },
+        { likesValue: { gt: HOT_LIKES_THRESHOLD } },
+      ],
       createdAt: { gte: yesterdayDate, lte: date },
-      likesValue: { gt: BEST_POST_THRESHOLD },
     },
     include: {
       bookmarks: { where: { userId }, take: 1 },
@@ -83,28 +92,23 @@ const getBestPostsInDate = async ({
       user: true,
     },
     orderBy: {
-      likesValue: "desc",
+      createdAt: "desc",
     },
   });
 
-  if (cursorPost) {
-    let postIndex = -1;
-    bestPosts.forEach((post, index) => {
-      if (post.id === cursorPost.id) {
-        postIndex = index;
-        return;
-      }
-    });
-    if (postIndex !== -1) bestPosts = bestPosts.slice(postIndex);
-  }
+  hotPosts.sort((a, b) => {
+    if (a.commentsCount < b.commentsCount) return 1;
+    else if (a.commentsCount > b.commentsCount) return -1;
+    else return 0;
+  });
 
   // IF For yerterday haven't created post.
   // Increase search interval
-  if (bestPosts.length < limit) {
+  if (hotPosts.length < limit) {
     const newSearchInterval = getSearchInterval(searchInterval);
 
-    const bestPostForYesterday = await getBestPostsInDate({
-      limit: limit - bestPosts.length,
+    const bestPostForYesterday = await getHotPostsInDate({
+      limit: limit - hotPosts.length,
       ctx,
       date: yesterdayDate,
       skip,
@@ -113,8 +117,8 @@ const getBestPostsInDate = async ({
       cursorPost,
     });
 
-    bestPosts = bestPosts.concat(bestPostForYesterday);
+    hotPosts = hotPosts.concat(bestPostForYesterday);
   }
 
-  return bestPosts;
+  return hotPosts;
 };

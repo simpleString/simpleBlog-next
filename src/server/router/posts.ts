@@ -2,6 +2,7 @@ import { Post, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { getBestPosts } from "../services/getBestPosts";
+import { getHotPosts } from "../services/getHotPosts";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
@@ -21,14 +22,12 @@ export const postRouter = createRouter()
     input: z.object({
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.string().cuid().optional(),
-      orderBy: z.enum(["best", "new"]),
+      orderBy: z.enum(["best", "new", "hot"]),
       skip: z.number().optional(),
     }),
     async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
       const limit = input.limit ?? 50;
       const { cursor, skip } = input;
-
-      console.log(input);
 
       let userId: undefined | string;
       if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
@@ -49,9 +48,16 @@ export const postRouter = createRouter()
             createdAt: "desc",
           },
         });
-      } else {
+      } else if (input.orderBy === "best") {
         // get best post
         posts = await getBestPosts({
+          ctx,
+          limit: limit + 1,
+          skip: skip ?? 0,
+          cursor,
+        });
+      } else {
+        posts = await getHotPosts({
           ctx,
           limit: limit + 1,
           skip: skip ?? 0,
@@ -265,6 +271,7 @@ export const postRouter = createRouter()
               data: { postId: input.postId, userId: ctx.session.user.id },
             });
             return { bookmarked: true };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (error: any) {
             if (error.code !== "P2002")
               throw new trpc.TRPCError({ code: "INTERNAL_SERVER_ERROR" });

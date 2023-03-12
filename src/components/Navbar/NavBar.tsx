@@ -14,7 +14,7 @@ const NavBar: React.FC = () => {
 
   return (
     <nav className="relative">
-      <div className="navbar fixed top-0 z-10 bg-base-100 px-4 text-base-content backdrop-blur shadow">
+      <div className="navbar fixed top-0 z-[100] bg-base-100 px-4 text-base-content backdrop-blur shadow">
         <div className="navbar-start">
           <Logo />
         </div>

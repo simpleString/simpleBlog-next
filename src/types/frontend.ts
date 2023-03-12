@@ -11,12 +11,17 @@ export type FieldZodError =
     }
   | undefined;
 
-export type OrderByType = Pick<
+export type CommentOrderByFieldType = Pick<
   inferQueryInput<"comment.getComments">,
   "orderBy"
 >["orderBy"];
 
 export type CommentOrderType = {
   comment: inferQueryOutput<"comment.getComments">[0];
-  order: OrderByType;
+  order: CommentOrderByFieldType;
 };
+
+export type PostOrderByFieldType = Pick<
+  inferQueryInput<"post.posts">,
+  "orderBy"
+>["orderBy"];

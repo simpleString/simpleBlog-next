@@ -1,13 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { OrderByType } from "./types/frontend";
+import {
+  CommentOrderByFieldType,
+  PostOrderByFieldType,
+} from "./types/frontend";
 
 type OrderCommentStore = {
-  order: OrderByType;
-  changeOrder: (order: OrderByType) => void;
+  order: CommentOrderByFieldType;
+  changeOrder: (order: CommentOrderByFieldType) => void;
 };
 
-type OrderPostStore = OrderCommentStore;
+type OrderPostStore = {
+  order: PostOrderByFieldType;
+  changeOrder: (order: PostOrderByFieldType) => void;
+};
 
 export const useOrderCommentStore = create<OrderCommentStore>()(
   persist(
