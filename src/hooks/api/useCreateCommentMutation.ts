@@ -1,3 +1,5 @@
+import { POST_LIMIT } from "../../constants/frontend";
+import { useOrderPostStore } from "../../store";
 import { type CommentOrderType } from "../../types/frontend";
 import { generateMessageObject } from "../../utils/messageApiHelper";
 import { trpc } from "../../utils/trpc";
@@ -7,9 +9,36 @@ export const useCreateCommentMutation = ({
   order,
 }: CommentOrderType) => {
   const utils = trpc.useContext();
+  const postOrder = useOrderPostStore((store) => store.order);
 
   return trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
+      const previousPostsList = utils.getInfiniteQueryData([
+        "post.posts",
+        { orderBy: postOrder, limit: POST_LIMIT },
+      ]);
+
+      if (previousPostsList)
+        utils.setInfiniteQueryData(
+          ["post.posts", { orderBy: postOrder, limit: POST_LIMIT }],
+          {
+            pages: previousPostsList.pages.map((page) => ({
+              ...page,
+
+              posts: page.posts.map((postPrevious) => {
+                if (postPrevious.id === data.postId) {
+                  return {
+                    ...postPrevious,
+                    commentsCount: postPrevious.commentsCount + 1,
+                  };
+                }
+                return postPrevious;
+              }),
+            })),
+            pageParams: previousPostsList.pageParams,
+          }
+        );
+
       utils.setQueryData(
         ["post.post", { postId: comment.postId }],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

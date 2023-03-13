@@ -1,5 +1,6 @@
+import { POST_LIMIT } from "../../constants/frontend";
 import { useIsAuthCheck } from "../../hooks/useIsAuth";
-import { useOrderCommentStore } from "../../store";
+import { useOrderCommentStore, useOrderPostStore } from "../../store";
 import { trpc } from "../../utils/trpc";
 import Dropdown from "../Dropdown";
 import LoadingSpinner from "../LoadingSpinner";
@@ -20,10 +21,37 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   const checkIsAuth = useIsAuthCheck(callbackUrl);
   const utils = trpc.useContext();
 
+  const postOrder = useOrderPostStore((store) => store.order);
   const { order, changeOrder } = useOrderCommentStore();
 
   const createCommentMutation = trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
+      const previousPostsList = utils.getInfiniteQueryData([
+        "post.posts",
+        { orderBy: postOrder, limit: POST_LIMIT },
+      ]);
+
+      if (previousPostsList)
+        utils.setInfiniteQueryData(
+          ["post.posts", { orderBy: postOrder, limit: POST_LIMIT }],
+          {
+            pages: previousPostsList.pages.map((page) => ({
+              ...page,
+
+              posts: page.posts.map((postPrevious) => {
+                if (postPrevious.id === data.postId) {
+                  return {
+                    ...postPrevious,
+                    commentsCount: postPrevious.commentsCount + 1,
+                  };
+                }
+                return postPrevious;
+              }),
+            })),
+            pageParams: previousPostsList.pageParams,
+          }
+        );
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       utils.setQueryData(["post.post", { postId }], (old: any) =>
         old ? { ...old, commentsCount: old.commentsCount + 1 } : null
