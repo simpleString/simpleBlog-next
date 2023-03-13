@@ -1,8 +1,9 @@
 import { Post, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
-import { getBestPosts } from "../services/getBestPosts";
-import { getHotPosts } from "../services/getHotPosts";
+import { DEFAULT_POST_LIMIT } from "../../constants/backend";
+import { getBookmarkedPosts, getPosts } from "../services/posts.service";
+import { getLikeValue } from "../utils/getLikeValue";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
@@ -17,68 +18,28 @@ type InfinitePostsOutputType = {
   nextCursor: string | undefined;
 };
 
+const ZodOrderByField = z.enum(["best", "new", "hot"]);
+export type OrderByFieldType = z.infer<typeof ZodOrderByField>;
+
 export const postRouter = createRouter()
   .query("posts", {
     input: z.object({
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.string().cuid().optional(),
-      orderBy: z.enum(["best", "new", "hot"]),
+      orderBy: ZodOrderByField,
       skip: z.number().optional(),
     }),
     async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
-      const limit = input.limit ?? 50;
+      const limit = input.limit ?? DEFAULT_POST_LIMIT;
       const { cursor, skip } = input;
 
-      let userId: undefined | string;
-      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-
-      let posts;
-
-      if (input.orderBy === "new") {
-        posts = await ctx.prisma.post.findMany({
-          take: limit + 1,
-          skip,
-          cursor: cursor ? { id: cursor } : undefined,
-          include: {
-            user: true,
-            likes: { where: { userId }, take: 1 },
-            bookmarks: { where: { userId }, take: 1 },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        });
-      } else if (input.orderBy === "best") {
-        // get best post
-        posts = await getBestPosts({
-          ctx,
-          limit: limit + 1,
-          skip: skip ?? 0,
-          cursor,
-        });
-      } else {
-        posts = await getHotPosts({
-          ctx,
-          limit: limit + 1,
-          skip: skip ?? 0,
-          cursor,
-        });
-      }
-
-      let nextCursor: typeof cursor = undefined;
-      if (posts.length > limit) {
-        const newPosts = [...posts];
-        newPosts.sort((a, b) => {
-          if (a.createdAt < b.createdAt) return 1;
-          else if (a.createdAt > b.createdAt) return -1;
-          else return 0;
-        });
-        const nextItem = newPosts.pop();
-        posts = posts.filter((post) => {
-          return post.id !== nextItem?.id;
-        });
-        if (nextItem) nextCursor = nextItem.id;
-      }
+      const { posts, nextCursor } = await getPosts({
+        ctx,
+        cursor,
+        limit,
+        orderBy: input.orderBy,
+        skip: skip ?? 0,
+      });
 
       return {
         posts: posts.map((post) => ({
@@ -159,31 +120,10 @@ export const postRouter = createRouter()
             });
 
             if (like) {
-              let likeValueChange = 0;
-              let likeValue = 0;
-              if (input.isPositive) {
-                if (like.isPositive === 1) {
-                  likeValue = 0;
-                  likeValueChange = -1;
-                } else if (like.isPositive === 0) {
-                  likeValue = 1;
-                  likeValueChange = 1;
-                } else {
-                  likeValue = 1;
-                  likeValueChange = 2;
-                }
-              } else {
-                if (like.isPositive === 1) {
-                  likeValue = -1;
-                  likeValueChange = -2;
-                } else if (like.isPositive === 0) {
-                  likeValue = -1;
-                  likeValueChange = -1;
-                } else {
-                  likeValue = 0;
-                  likeValueChange = 1;
-                }
-              }
+              const { likeValue, likeValueChange } = getLikeValue({
+                currentLikeValue: like.isPositive,
+                inputLikeValue: input.isPositive,
+              });
 
               return prisma.like.update({
                 where: {
@@ -218,6 +158,36 @@ export const postRouter = createRouter()
               });
             }
           });
+        },
+      })
+
+      .query("bookedPosts", {
+        input: z.object({
+          limit: z.number().min(1).max(100).nullish(),
+          cursor: z.string().cuid().optional(),
+          orderBy: ZodOrderByField,
+          skip: z.number().optional(),
+        }),
+        async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
+          const limit = input.limit ?? DEFAULT_POST_LIMIT;
+          const { cursor, skip } = input;
+
+          const { posts, nextCursor } = await getBookmarkedPosts({
+            ctx,
+            cursor,
+            limit,
+            orderBy: input.orderBy,
+            skip: skip ?? 0,
+          });
+
+          return {
+            posts: posts.map((post) => ({
+              ...post,
+              bookmarked: post.bookmarks[0] ? true : false,
+              likedByMe: post.likes[0]?.isPositive,
+            })),
+            nextCursor,
+          };
         },
       })
 

@@ -1,25 +1,10 @@
-import { Post, Prisma, PrismaClient } from "@prisma/client";
-import { Session } from "next-auth";
-import { BEST_POST_THRESHOLD } from "../../constants/backend";
-import { getSearchInterval } from "../utils/getSearchInterval";
+import { Post } from "@prisma/client";
+import { BEST_POST_THRESHOLD } from "../../../constants/backend";
+import { getSearchInterval } from "../../utils/getSearchInterval";
+import type { AlgorithmsType } from "../posts.service";
 
-type getBestPostsType = {
-  limit: number;
-  skip: number;
-  cursor: string | undefined;
-  ctx: {
-    session: Session | null;
-    prisma: PrismaClient<
-      Prisma.PrismaClientOptions,
-      never,
-      Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-    >;
-  };
-};
-
-type getBestPostsInDateType = Omit<getBestPostsType, "cursor"> & {
+type getBestPostsInDateType = Omit<AlgorithmsType, "cursor"> & {
   date: Date;
-  userId: string | undefined;
   searchInterval?: number;
   cursorPost: Post | null | undefined;
 };
@@ -31,9 +16,8 @@ export const getBestPosts = async ({
   skip,
   ctx,
   cursor,
-}: getBestPostsType) => {
-  let userId: undefined | string;
-  if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
+  userId,
+}: AlgorithmsType) => {
   let cursorPost;
   if (cursor)
     cursorPost = await ctx.prisma.post.findFirst({ where: { id: cursor } });

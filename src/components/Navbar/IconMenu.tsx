@@ -35,6 +35,11 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
         <a>Drafts</a>
       </li>
       <li>
+        <NextLink href="/post/saved">
+          <a>Saved Posts</a>
+        </NextLink>
+      </li>
+      <li>
         <a onClick={() => signOut()}>Logout</a>
       </li>
     </Dropdown>

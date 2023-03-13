@@ -29,7 +29,6 @@ const Profile: NextPageWithLayout<React.FC> = () => {
     //TODO: Optimize it. It's download twice and in every page entering
     const init = async () => {
       await me.refetch();
-      console.log("name is ", me.data);
       setName(me.data?.name);
     };
     init();

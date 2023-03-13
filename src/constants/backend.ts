@@ -14,3 +14,5 @@ export const BEST_POST_THRESHOLD = 0;
 
 export const HOT_LIKES_THRESHOLD = 0;
 export const NEGATIVE_THRESHOLD_COMMENTS = 10;
+
+export const DEFAULT_POST_LIMIT = 50;

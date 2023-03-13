@@ -1,6 +1,7 @@
 import { Comment, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
+import { getLikeValue } from "../utils/getLikeValue";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
 
@@ -46,8 +47,6 @@ export const commentRouter = createRouter()
           ...(input.orderBy === "new" && { updatedAt: "desc" }),
         },
       });
-
-      console.log(comments);
 
       return comments.map((comment) => ({
         ...comment,
@@ -159,31 +158,10 @@ export const commentRouter = createRouter()
           });
 
           if (like) {
-            let likeValueChange = 0;
-            let likeValue = 0;
-            if (input.isPositive) {
-              if (like.isPositive === 1) {
-                likeValue = 0;
-                likeValueChange = -1;
-              } else if (like.isPositive === 0) {
-                likeValue = 1;
-                likeValueChange = 1;
-              } else if (like.isPositive === -1) {
-                likeValue = 1;
-                likeValueChange = 2;
-              }
-            } else {
-              if (like.isPositive === 1) {
-                likeValue = -1;
-                likeValueChange = -2;
-              } else if (like.isPositive === 0) {
-                likeValue = -1;
-                likeValueChange = -1;
-              } else if (like.isPositive === -1) {
-                likeValue = 0;
-                likeValueChange = 1;
-              }
-            }
+            const { likeValue, likeValueChange } = getLikeValue({
+              currentLikeValue: like.isPositive,
+              inputLikeValue: input.isPositive,
+            });
 
             return await ctx.prisma.commentLike.update({
               where: {

@@ -23,7 +23,9 @@ export const Layout: React.FC<LayoutProps> = ({
 
       <NavBar />
       <div className="flex mt-20">
-        <div className="mx-auto w-full sm:max-w-2xl ">{children}</div>
+        <div className="mx-auto w-full sm:max-w-2xl min-h-screen">
+          {children}
+        </div>
       </div>
       <Footer />
     </>
