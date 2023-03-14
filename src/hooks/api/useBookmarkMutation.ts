@@ -21,6 +21,7 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
       ]);
 
       await utils.cancelQuery(["post.posts"]);
+      await utils.cancelQuery(["post.bookedPosts"]);
 
       const previousPost = utils.getQueryData([
         "post.post",
@@ -32,11 +33,38 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
         { orderBy: order, limit: POST_LIMIT },
       ]);
 
+      const previousBookedPostsList = utils.getInfiniteQueryData([
+        "post.bookedPosts",
+        { orderBy: order, limit: POST_LIMIT },
+      ]);
+
       if (previousPost) {
         utils.setQueryData(["post.post", { postId: post.id }], {
           ...previousPost,
           bookmarked: previousPost.bookmarked ? false : true,
         });
+      }
+
+      if (previousBookedPostsList) {
+        utils.setInfiniteQueryData(
+          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          {
+            pages: previousBookedPostsList.pages.map((page) => ({
+              ...page,
+
+              posts: page.posts.map((postPrevious) => {
+                if (postPrevious.id === data.postId) {
+                  return {
+                    ...postPrevious,
+                    bookmarked: postPrevious.bookmarked ? false : true,
+                  };
+                }
+                return postPrevious;
+              }),
+            })),
+            pageParams: previousBookedPostsList.pageParams,
+          }
+        );
       }
 
       if (previousPostsList) {
@@ -61,23 +89,32 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
         );
       }
 
-      return { previousPost, previousPostsList };
+      return { previousPost, previousPostsList, previousBookedPostsList };
     },
 
     onError(_err, _newData, context) {
       if (!context) return;
 
-      if (context.previousPost)
+      if (context.previousPost) {
         utils.setQueryData(
           ["post.post", { postId: post.id }],
           context.previousPost
         );
+      }
 
-      if (context.previousPostsList)
+      if (context.previousPostsList) {
         utils.setInfiniteQueryData(
           ["post.posts", { orderBy: order, limit: POST_LIMIT }],
           context.previousPostsList
         );
+      }
+
+      if (context.previousBookedPostsList) {
+        utils.setInfiniteQueryData(
+          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          context.previousBookedPostsList
+        );
+      }
     },
   });
 };

@@ -13,12 +13,43 @@ export const useCreateCommentMutation = ({
 
   return trpc.useMutation(["comment.createComment"], {
     onSuccess: async (data) => {
+      // Set in carefully. It's sets without autocompolite.
+      await utils.queryClient.cancelQueries(["post"]);
+      await utils.queryClient.cancelQueries(["comment"]);
+
       const previousPostsList = utils.getInfiniteQueryData([
         "post.posts",
         { orderBy: postOrder, limit: POST_LIMIT },
       ]);
 
-      if (previousPostsList)
+      const previousBookedPostsList = utils.getInfiniteQueryData([
+        "post.bookedPosts",
+        { orderBy: postOrder, limit: POST_LIMIT },
+      ]);
+
+      if (previousBookedPostsList) {
+        utils.setInfiniteQueryData(
+          ["post.bookedPosts", { orderBy: postOrder, limit: POST_LIMIT }],
+          {
+            pages: previousBookedPostsList.pages.map((page) => ({
+              ...page,
+
+              posts: page.posts.map((postPrevious) => {
+                if (postPrevious.id === data.postId) {
+                  return {
+                    ...postPrevious,
+                    commentsCount: postPrevious.commentsCount + 1,
+                  };
+                }
+                return postPrevious;
+              }),
+            })),
+            pageParams: previousBookedPostsList.pageParams,
+          }
+        );
+      }
+
+      if (previousPostsList) {
         utils.setInfiniteQueryData(
           ["post.posts", { orderBy: postOrder, limit: POST_LIMIT }],
           {
@@ -38,6 +69,7 @@ export const useCreateCommentMutation = ({
             pageParams: previousPostsList.pageParams,
           }
         );
+      }
 
       utils.setQueryData(
         ["post.post", { postId: comment.postId }],
