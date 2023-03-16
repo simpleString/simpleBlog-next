@@ -39,6 +39,7 @@ export const postRouter = createRouter()
         limit,
         orderBy: input.orderBy,
         skip: skip ?? 0,
+        searchQuery: undefined,
       });
 
       return {
@@ -55,25 +56,32 @@ export const postRouter = createRouter()
   .query("search", {
     input: z.object({
       query: z.string(),
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.string().cuid().optional(),
+      orderBy: ZodOrderByField,
+      skip: z.number().optional(),
     }),
-    async resolve({ ctx, input }): Promise<PostOutputType[]> {
-      let userId: undefined | string;
-      if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-      const posts = await ctx.prisma.post.findMany({
-        include: {
-          user: true,
-          likes: { where: { userId }, take: 1 },
-          bookmarks: { where: { userId }, take: 1 },
-        },
-        where: { title: { contains: input.query } },
-        orderBy: { createdAt: "desc" },
+    async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
+      const limit = input.limit ?? DEFAULT_POST_LIMIT;
+      const { cursor, skip } = input;
+
+      const { posts, nextCursor } = await getPosts({
+        ctx,
+        cursor,
+        limit,
+        orderBy: input.orderBy,
+        skip: skip ?? 0,
+        searchQuery: input.query,
       });
 
-      return posts.map((post) => ({
-        ...post,
-        bookmarked: post.bookmarks[0] ? true : false,
-        likedByMe: post.likes[0]?.isPositive,
-      }));
+      return {
+        posts: posts.map((post) => ({
+          ...post,
+          bookmarked: post.bookmarks[0] ? true : false,
+          likedByMe: post.likes[0]?.isPositive,
+        })),
+        nextCursor,
+      };
     },
   })
 
@@ -178,6 +186,7 @@ export const postRouter = createRouter()
             limit,
             orderBy: input.orderBy,
             skip: skip ?? 0,
+            searchQuery: undefined,
           });
 
           return {

@@ -21,6 +21,7 @@ type getPostsType = {
     >;
   };
   orderBy: OrderByFieldType;
+  searchQuery: string | undefined;
 };
 
 export type AlgorithmsType = Omit<getPostsType, "orderBy"> & {
@@ -39,6 +40,7 @@ export const getPosts = async ({
   limit,
   skip,
   orderBy,
+  searchQuery,
 }: getPostsType) => {
   let posts;
 
@@ -52,6 +54,7 @@ export const getPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   } else if (orderBy === "best") {
     // get best post
@@ -61,6 +64,7 @@ export const getPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   } else {
     posts = await getHotPosts({
@@ -69,6 +73,7 @@ export const getPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   }
 
@@ -101,6 +106,7 @@ export const getBookmarkedPosts = async ({
   limit,
   skip,
   orderBy,
+  searchQuery,
 }: getBookmarkedPostsType) => {
   let posts;
 
@@ -114,6 +120,7 @@ export const getBookmarkedPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   } else if (orderBy === "best") {
     // get best post
@@ -123,6 +130,7 @@ export const getBookmarkedPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   } else {
     posts = await getBookmarkedHotPosts({
@@ -131,6 +139,7 @@ export const getBookmarkedPosts = async ({
       skip: skip ?? 0,
       cursor,
       userId,
+      searchQuery,
     });
   }
 

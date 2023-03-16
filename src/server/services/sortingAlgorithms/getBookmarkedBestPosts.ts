@@ -17,6 +17,7 @@ export const getBookmarkedBestPosts = async ({
   ctx,
   cursor,
   userId,
+  searchQuery,
 }: AlgorithmsType) => {
   let cursorPost;
   if (cursor)
@@ -32,6 +33,7 @@ export const getBookmarkedBestPosts = async ({
     date: currentDate,
     searchInterval: getSearchInterval(5),
     cursorPost,
+    searchQuery,
   });
 
   return bestPosts;
@@ -45,6 +47,7 @@ const getBookmarkedBestPostsInDate = async ({
   ctx,
   userId,
   cursorPost,
+  searchQuery,
 }: getBookmarkedBestPostsInDateType) => {
   if (!searchInterval) {
     return [];
@@ -58,6 +61,7 @@ const getBookmarkedBestPostsInDate = async ({
   let bestPosts = await ctx.prisma.post.findMany({
     take: limit,
     where: {
+      title: { contains: searchQuery },
       bookmarks: { some: { userId } },
       createdAt: { gte: yesterdayDate, lte: date },
       likesValue: { gt: BEST_POST_THRESHOLD },
@@ -96,6 +100,7 @@ const getBookmarkedBestPostsInDate = async ({
       userId,
       searchInterval: newSearchInterval,
       cursorPost,
+      searchQuery,
     });
 
     bestPosts = bestPosts.concat(bestPostForYesterday);

@@ -17,6 +17,7 @@ export const getBestPosts = async ({
   ctx,
   cursor,
   userId,
+  searchQuery,
 }: AlgorithmsType) => {
   let cursorPost;
   if (cursor)
@@ -32,6 +33,7 @@ export const getBestPosts = async ({
     date: currentDate,
     searchInterval: getSearchInterval(5),
     cursorPost,
+    searchQuery,
   });
 
   return bestPosts;
@@ -45,6 +47,7 @@ const getBestPostsInDate = async ({
   ctx,
   userId,
   cursorPost,
+  searchQuery,
 }: getBestPostsInDateType) => {
   if (!searchInterval) {
     return [];
@@ -60,6 +63,7 @@ const getBestPostsInDate = async ({
     where: {
       createdAt: { gte: yesterdayDate, lte: date },
       likesValue: { gt: BEST_POST_THRESHOLD },
+      title: { contains: searchQuery },
     },
     include: {
       bookmarks: { where: { userId }, take: 1 },
@@ -95,6 +99,7 @@ const getBestPostsInDate = async ({
       userId,
       searchInterval: newSearchInterval,
       cursorPost,
+      searchQuery,
     });
 
     bestPosts = bestPosts.concat(bestPostForYesterday);

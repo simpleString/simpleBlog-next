@@ -18,6 +18,7 @@ export const getHotPosts = async ({
   limit,
   skip,
   userId,
+  searchQuery,
 }: AlgorithmsType) => {
   let cursorPost;
   if (cursor)
@@ -33,6 +34,7 @@ export const getHotPosts = async ({
     date: currentDate,
     searchInterval: getSearchInterval(5),
     cursorPost,
+    searchQuery,
   });
 
   return hotPosts;
@@ -46,6 +48,7 @@ const getHotPostsInDate = async ({
   skip,
   userId,
   searchInterval,
+  searchQuery,
 }: getHotPostsInDateType) => {
   if (!searchInterval) {
     return [];
@@ -68,6 +71,7 @@ const getHotPostsInDate = async ({
         },
         { likesValue: { gt: HOT_LIKES_THRESHOLD } },
       ],
+      title: { contains: searchQuery },
       createdAt: { gte: yesterdayDate, lte: date },
     },
     include: {
@@ -93,6 +97,7 @@ const getHotPostsInDate = async ({
       userId,
       searchInterval: newSearchInterval,
       cursorPost,
+      searchQuery,
     });
 
     hotPosts = hotPosts.concat(bestPostForYesterday);

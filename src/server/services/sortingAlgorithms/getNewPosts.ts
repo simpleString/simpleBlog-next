@@ -6,11 +6,13 @@ export const getNewPosts = async ({
   limit,
   skip,
   userId,
+  searchQuery,
 }: AlgorithmsType) => {
   return ctx.prisma.post.findMany({
     take: limit + 1,
     skip,
     cursor: cursor ? { id: cursor } : undefined,
+    where: { title: { contains: searchQuery } },
     include: {
       user: true,
       likes: { where: { userId }, take: 1 },
