@@ -59,7 +59,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
               image={postQuery.data.user.image}
               username={postQuery.data.user.name}
             />
-            <h1 className="text-2xl font-bold p-2">{postQuery.data.title}</h1>
+            <h1 className="p-2 text-2xl font-bold">{postQuery.data.title}</h1>
             {postQuery.data.image && (
               <div className="relative p-2">
                 <NextImage
@@ -73,7 +73,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
             )}
             <div
               dangerouslySetInnerHTML={{ __html: postQuery.data.text }}
-              className="prose prose-sm focus:outline-none p-4 prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1"
+              className="prose-sm prose max-w-none p-4 focus:outline-none prose-headings:my-1 prose-p:my-1 prose-img:my-1 prose-img:w-full"
             />
 
             <InteractivePanel

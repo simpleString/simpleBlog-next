@@ -20,7 +20,7 @@ const NavBarSearch: React.FC<NavbarSearchProps> = ({
     setSearchValue(e.target.value);
   };
 
-  const closeMenu = () => setTimeout(() => setSearchMenuOpened(false), 200);
+  const closeMenu = () => setTimeout(() => setSearchMenuOpened(false), 150);
 
   const openMenu = () => {
     setSearchMenuOpened(true);

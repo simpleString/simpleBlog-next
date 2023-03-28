@@ -1,14 +1,18 @@
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import Dropdown from "../../../components/Dropdown";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 import { PostComponent } from "../../../components/posts/PostComponent";
+import SearchComponent, {
+  FormInputType,
+} from "../../../components/SearchComponent";
 import { POST_LIMIT } from "../../../constants/frontend";
 import { useOnScreen } from "../../../hooks/useOnScreen";
 import { Layout } from "../../../layouts/Layout";
-import { useOrderPostStore } from "../../../store";
+import { useOrderSearchPostsStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
 import { NextPageWithLayout } from "../../_app";
+
+type AdvanceSearchValueType = FormInputType;
 
 const Search: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
@@ -18,13 +22,10 @@ const Search: NextPageWithLayout<React.FC> = () => {
   const bottomOfPosts = useRef<HTMLDivElement>(null);
   const isOnScreen = useOnScreen(bottomOfPosts);
 
-  const { order: notHydratedOrder, changeOrder } = useOrderPostStore();
+  const order = useOrderSearchPostsStore((store) => store.order);
 
-  //It's solve hydration error
-  const [order, setOrder] = useState<typeof notHydratedOrder>("best");
-  useEffect(() => {
-    setOrder(notHydratedOrder);
-  }, [notHydratedOrder]);
+  const [advanceSearchParams, setAdvanceSearchParams] =
+    useState<AdvanceSearchValueType>();
 
   const {
     data,
@@ -32,7 +33,10 @@ const Search: NextPageWithLayout<React.FC> = () => {
     fetchNextPage,
     isFetchingNextPage,
   } = trpc.useInfiniteQuery(
-    ["post.search", { limit: POST_LIMIT, orderBy: order, query }],
+    [
+      "post.search",
+      { limit: POST_LIMIT, orderBy: order, query, ...advanceSearchParams },
+    ],
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
@@ -46,41 +50,23 @@ const Search: NextPageWithLayout<React.FC> = () => {
     if (isOnScreen) handleFetchNextPage();
   }, [isOnScreen, fetchNextPage]);
 
+  const onSubmitSearch = ({
+    author,
+    dateFrom,
+    dateTo,
+    ratingFrom,
+    ratingTo,
+  }: AdvanceSearchValueType) => {
+    setAdvanceSearchParams({ author, dateFrom, dateTo, ratingFrom, ratingTo });
+  };
+
   return (
     <div className="md:p-4">
-      <div className="ml-auto">
-        <Dropdown
-          buttonComponentClasses="btn "
-          childrenClasses="p-0 w-36 menu-compact"
-          buttonComponent={<span>Sort by: {order}</span>}
-          dropdownClasses="dropdown-end"
-        >
-          <li className="pt-2">
-            <span
-              className={`${order === "new" ? "active" : ""}`}
-              onClick={() => changeOrder("new")}
-            >
-              New
-            </span>
-          </li>
-          <li>
-            <span
-              className={`${order === "best" ? "active" : ""}`}
-              onClick={() => changeOrder("best")}
-            >
-              Best
-            </span>
-          </li>
-          <li>
-            <span
-              className={`${order === "hot" ? "active" : ""}`}
-              onClick={() => changeOrder("hot")}
-            >
-              Hot
-            </span>
-          </li>
-        </Dropdown>
-      </div>
+      <SearchComponent
+        submitFn={onSubmitSearch}
+        query={query}
+        resultCount={data?.pages[0]?.postsCount ?? 0}
+      />
       {postLoading ? (
         <LoadingSpinner />
       ) : (

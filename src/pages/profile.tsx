@@ -51,7 +51,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
   }
 
   return (
-    <div className="  shadow bg-base-100">
+    <div className="  bg-base-100 shadow">
       {!me.isLoading && (
         <div className="indicator">
           <div className="avatar">
@@ -64,7 +64,7 @@ const Profile: NextPageWithLayout<React.FC> = () => {
               />
             </div>
           </div>
-          <label className="bottom-6 right-6 indicator-item indicator-bottom badge cursor-pointer badge-secondary">
+          <label className="badge-secondary badge indicator-bottom indicator-item bottom-6 right-6 cursor-pointer">
             <i className="ri-upload-line" />
             <input
               className="hidden"

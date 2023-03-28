@@ -34,3 +34,8 @@ export const useOrderPostStore = create<OrderPostStore>()(
     { name: "postOrder" }
   )
 );
+
+export const useOrderSearchPostsStore = create<OrderPostStore>()((set) => ({
+  order: "best",
+  changeOrder: (order) => set({ order }),
+}));
