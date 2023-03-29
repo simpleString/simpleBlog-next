@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import { CommentOrderType } from "../../types/frontend";
 import { getLikeValue } from "../../utils/getLikeValue";
 import { generateMessageObject } from "../../utils/messageApiHelper";
@@ -49,6 +50,8 @@ export const useLikeCommentMutation = ({
 
     onError(_err, _newData, context) {
       if (!context) return;
+
+      toast.error("Connection error");
 
       utils.setQueryData(
         ["comment.getComments", generateMessageObject({ comment, order })],

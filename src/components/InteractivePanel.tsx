@@ -5,6 +5,7 @@ import { useLikePostMutation } from "../hooks/api/useLikePostMutation";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { inferQueryOutput } from "../utils/trpc";
 import LikeControlComponent from "./LikeControlComponent";
+import { toast } from "react-toastify";
 
 type InteractivePanelProps = {
   post: Exclude<inferQueryOutput<"post.post">, null>;
@@ -39,9 +40,9 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   const isUserOwner = session.data?.user?.id;
 
   return (
-    <div className="flex p-4 pb-2 items-center">
+    <div className="flex items-center p-4 pb-2">
       <NextLink href={`/post/${post.id}#comments`}>
-        <a className="motion-safe:hover:scale-110 duration-500 flex group space-x-1 hover:text-primary">
+        <a className="group flex space-x-1 duration-500 hover:text-primary motion-safe:hover:scale-110">
           <i className="ri-chat-1-line" />
           <span>{post?.commentsCount}</span>
         </a>
@@ -58,7 +59,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
           href={{ pathname: "/update-post", query: { id: post?.id } }}
           passHref
         >
-          <button className="ml-auto motion-safe:hover:scale-110 duration-500 flex space-x-1">
+          <button className="ml-auto flex space-x-1 duration-500 motion-safe:hover:scale-110">
             <span>Edit</span>
             <i className="ri-pencil-line" />
           </button>

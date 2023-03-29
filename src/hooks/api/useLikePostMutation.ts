@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 import { POST_LIMIT } from "../../constants/frontend";
 import { useOrderPostStore } from "../../store";
 import { getLikeValue } from "../../utils/getLikeValue";
@@ -121,6 +122,8 @@ export const useLikePostMutation = ({ post }: useLikePostMutationType) => {
 
     onError(_err, _newData, context) {
       if (!context) return;
+
+      toast.error("Connection error");
 
       if (context.previousPost) {
         utils.setQueryData(

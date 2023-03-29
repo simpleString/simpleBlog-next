@@ -1,5 +1,6 @@
 import { withTRPC } from "@trpc/next";
 import { SessionProvider } from "next-auth/react";
+import "react-toastify/dist/ReactToastify.css";
 import "remixicon/fonts/remixicon.css";
 import superjson from "superjson";
 import type { AppRouter } from "../server/router";

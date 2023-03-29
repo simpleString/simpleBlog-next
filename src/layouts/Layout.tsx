@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { Footer } from "../components/Footer";
 import NavBar from "../components/Navbar/NavBar";
-
+import { ToastContainer } from "react-toastify";
 interface LayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
@@ -22,8 +22,9 @@ export const Layout: React.FC<LayoutProps> = ({
       </Head>
 
       <NavBar />
-      <div className="flex mt-20">
-        <div className="mx-auto w-full sm:max-w-2xl min-h-screen">
+      <div className="mt-20 flex">
+        <div className="mx-auto min-h-screen w-full sm:max-w-2xl">
+          <ToastContainer />
           {children}
         </div>
       </div>

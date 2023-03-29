@@ -48,6 +48,7 @@
     "react-query": "3.39.2",
     "react-select": "^5.4.0",
     "react-tailwindcss-datepicker": "^1.5.1",
+    "react-toastify": "^9.1.2",
     "remixicon": "^2.5.0",
     "superjson": "^1.9.1",
     "trpc-client-devtools-link": "^0.1.1",
