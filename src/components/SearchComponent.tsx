@@ -22,6 +22,7 @@ export type FormInputType = {
   ratingTo: number;
   dateFrom: Date | undefined;
   dateTo: Date | undefined;
+  bookmark: boolean;
 };
 
 const resolver: Resolver<FormInputType> = async (data) => {
@@ -85,6 +86,9 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   } = useForm<FormInputType>({
     resolver,
     mode: "all",
+    defaultValues: {
+      bookmark: false,
+    },
   });
 
   const currentRatingFromValue = watch("ratingFrom");
@@ -97,6 +101,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   }, [currentRatingFromValue, getValues, setValue]);
 
   const onSubmit = handleSubmit((data) => {
+    console.log(data);
     submitFn(data);
   });
 
@@ -123,7 +128,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
           <span className="text-xl ">Result count: {resultCount}</span>
         </div>
         <form onSubmit={onSubmit} className="flex flex-col space-y-2">
-          <div className="flex">
+          <div className="">
             <label>
               <span>Author</span>
               <input
@@ -131,9 +136,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                 className="input-bordered input w-full"
                 placeholder="Name"
               />
-            </label>
-            <label>
-              <input type="checkbox" className="toggle" checked />
             </label>
           </div>
 
@@ -186,6 +188,15 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                   new Date(value?.startDate?.toLocaleString() || "")
                 )
               }
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <span>Bookmark:</span>
+            <input
+              {...register("bookmark")}
+              type="checkbox"
+              className="toggle toggle-md"
             />
           </div>
 

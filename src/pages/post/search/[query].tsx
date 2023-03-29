@@ -50,14 +50,8 @@ const Search: NextPageWithLayout<React.FC> = () => {
     if (isOnScreen) handleFetchNextPage();
   }, [isOnScreen, fetchNextPage]);
 
-  const onSubmitSearch = ({
-    author,
-    dateFrom,
-    dateTo,
-    ratingFrom,
-    ratingTo,
-  }: AdvanceSearchValueType) => {
-    setAdvanceSearchParams({ author, dateFrom, dateTo, ratingFrom, ratingTo });
+  const onSubmitSearch = (data: AdvanceSearchValueType) => {
+    setAdvanceSearchParams(data);
   };
 
   return (

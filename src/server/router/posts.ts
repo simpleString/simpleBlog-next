@@ -69,6 +69,7 @@ export const postRouter = createRouter()
       dateTo: z.date().optional(),
       ratingTo: z.number().optional(),
       ratingFrom: z.number().optional(),
+      bookmark: z.boolean().optional(),
     }),
     async resolve({ ctx, input }): Promise<InfiniteSearchPostsOutputType> {
       const limit = input.limit ?? DEFAULT_POST_LIMIT;
@@ -82,6 +83,7 @@ export const postRouter = createRouter()
         query,
         ratingFrom,
         ratingTo,
+        bookmark,
       } = input;
 
       const userId = ctx.session?.user?.id;
@@ -97,6 +99,7 @@ export const postRouter = createRouter()
               createdAt: { gte: dateFrom, lte: dateTo },
               user: { name: { contains: author } },
               title: { contains: query },
+              ...(bookmark && userId && { bookmarks: { some: { userId } } }),
             },
           });
 
@@ -109,6 +112,7 @@ export const postRouter = createRouter()
               createdAt: { gte: dateFrom, lte: dateTo },
               user: { name: { contains: author } },
               title: { contains: query },
+              ...(bookmark && userId && { bookmarks: { some: { userId } } }),
             },
             include: {
               user: true,
