@@ -297,7 +297,7 @@ export const postRouter = createRouter()
 
       .mutation("createPost", {
         input: z.object({
-          title: z.string().min(5),
+          title: z.string(),
           text: z.string(),
           image: z.string().url().nullable(),
         }),
@@ -310,7 +310,7 @@ export const postRouter = createRouter()
       .mutation("updatePost", {
         input: z.object({
           id: z.string().cuid(),
-          title: z.string().min(5),
+          title: z.string(),
           text: z.string(),
           image: z.string().url().nullable(),
         }),

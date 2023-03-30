@@ -2,9 +2,6 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Session } from "next-auth";
 import type { OrderByFieldType } from "../router/posts";
 import { getBestPosts } from "./sortingAlgorithms/getBestPosts";
-import { getBookmarkedBestPosts } from "./sortingAlgorithms/getBookmarkedBestPosts";
-import { getBookmarkedHotPosts } from "./sortingAlgorithms/getBookmarkedHotPosts";
-import { getBookmarkedNewPosts } from "./sortingAlgorithms/getBookmarkedNewPosts";
 import { getHotPosts } from "./sortingAlgorithms/getHotPosts";
 import { getNewPosts } from "./sortingAlgorithms/getNewPosts";
 
@@ -68,72 +65,6 @@ export const getPosts = async ({
     });
   } else {
     posts = await getHotPosts({
-      ctx,
-      limit: limit + 1,
-      skip: skip ?? 0,
-      cursor,
-      userId,
-      searchQuery,
-    });
-  }
-
-  let nextCursor: typeof cursor = undefined;
-  if (posts.length > limit) {
-    if (orderBy === "best") {
-      const newPosts = [...posts];
-      newPosts.sort((a, b) => {
-        if (a.createdAt < b.createdAt) return 1;
-        else if (a.createdAt > b.createdAt) return -1;
-        else return 0;
-      });
-      const nextItem = newPosts.pop();
-      posts = posts.filter((post) => {
-        return post.id !== nextItem?.id;
-      });
-      if (nextItem) nextCursor = nextItem.id;
-    } else {
-      const nextItem = posts.pop();
-      if (nextItem) nextCursor = nextItem.id;
-    }
-  }
-
-  return { posts, nextCursor };
-};
-
-export const getBookmarkedPosts = async ({
-  ctx,
-  cursor,
-  limit,
-  skip,
-  orderBy,
-  searchQuery,
-}: getBookmarkedPostsType) => {
-  let posts;
-
-  let userId = "";
-  if (ctx.session && ctx.session.user) userId = ctx.session.user.id;
-
-  if (orderBy === "new") {
-    posts = await getBookmarkedNewPosts({
-      ctx,
-      limit: limit + 1,
-      skip: skip ?? 0,
-      cursor,
-      userId,
-      searchQuery,
-    });
-  } else if (orderBy === "best") {
-    // get best post
-    posts = await getBookmarkedBestPosts({
-      ctx,
-      limit: limit + 1,
-      skip: skip ?? 0,
-      cursor,
-      userId,
-      searchQuery,
-    });
-  } else {
-    posts = await getBookmarkedHotPosts({
       ctx,
       limit: limit + 1,
       skip: skip ?? 0,

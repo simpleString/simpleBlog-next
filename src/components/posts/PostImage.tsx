@@ -9,15 +9,16 @@ type PostImageProps = {
 const PostImage: React.FC<PostImageProps> = ({ postId, image }) => {
   return (
     <NextLink href={`/post/${postId}`} passHref>
-      <div className="relative">
+      <div className="p-2">
         <NextImage
-          className="p-0 cursor-pointer"
+          className="cursor-pointer"
           src={image}
           alt="Post image"
           layout="responsive"
           width="640"
           height="360"
           loading="lazy"
+          objectFit="contain"
         />
       </div>
     </NextLink>

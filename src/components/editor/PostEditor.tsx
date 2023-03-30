@@ -5,9 +5,10 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "next/image";
+import NextImage from "next/image";
 import NextLink from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { SupabaseBackets } from "../../constants/supabase";
 import { fileUploader } from "../../utils/fileUploader";
 import { MenuBar } from "./MenuBar";
@@ -35,7 +36,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
 }) => {
   const [content, setContent] = useState(text);
   const [postTitle, setPostTitle] = useState(title);
-  const [postImage, setPostImage] = useState<null | string>(image);
+  const [postImage, setPostImage] = useState<string | null>(image);
 
   const onButtonClearImageClick = () => {
     setPostImage(null);
@@ -45,12 +46,31 @@ const PostEditor: React.FC<PostEditorProps> = ({
     const file = e.currentTarget.files?.[0];
     if (!file) return;
 
-    const photoUrl = await fileUploader({
-      file,
-      backet: SupabaseBackets.FILE,
+    const base64Image = await new Promise<string>((resolve, reject) => {
+      const fileReader = new FileReader();
+
+      fileReader.onload = () => {
+        if (fileReader.result) {
+          resolve(fileReader.result as string);
+        }
+        reject(null);
+      };
+      fileReader.readAsDataURL(file);
     });
 
-    setPostImage(photoUrl);
+    setPostImage(base64Image);
+
+    try {
+      const photoUrl = await fileUploader({
+        file,
+        backet: SupabaseBackets.FILE,
+      });
+
+      setPostImage(photoUrl);
+    } catch (error) {
+      toast.error("Can't upload image");
+      setPostImage(null);
+    }
   };
 
   const onButtonSaveClick = () => {
@@ -95,10 +115,10 @@ const PostEditor: React.FC<PostEditorProps> = ({
 
   return (
     <>
-      <div className="shadow sm:p-4 space-y-4">
+      <div className="space-y-4 shadow sm:p-4">
         <div className="w-full">
           <input
-            className="input input-bordered w-full "
+            className="input-bordered input w-full "
             placeholder="Title"
             value={postTitle}
             onChange={(e) => setPostTitle(e.target.value)}
@@ -109,26 +129,27 @@ const PostEditor: React.FC<PostEditorProps> = ({
             <div className="indicator">
               <label
                 onClick={onButtonClearImageClick}
-                className="top-3 right-6 indicator-item badge cursor-pointer badge-secondary hover:bg-secondary-focus"
+                className="badge-secondary badge indicator-item top-3 right-6 cursor-pointer hover:bg-secondary-focus"
               >
                 <i className="ri-close-line" />
               </label>
-              <Image
-                src={postImage}
-                alt="Post image"
-                width="200px"
-                height="200px"
-                objectFit="fill"
-                loading="lazy"
-              />
+              <div className="h-[360px] w-[640px] bg-base-200">
+                <NextImage
+                  src={postImage}
+                  alt="Post image"
+                  layout="fill"
+                  objectFit="contain"
+                  loading="eager"
+                />
+              </div>
             </div>
           )}
           {!postImage && (
-            <label className="flex flex-col w-full h-32 border-4 border-blue-200 border-dashed hover:bg-gray-100 hover:border-gray-300">
-              <div className="flex flex-col items-center justify-center pt-7">
+            <label className="flex h-32 w-full flex-col border-4 border-dashed border-blue-200 hover:border-gray-300 hover:bg-gray-100">
+              <div className="flex cursor-pointer flex-col items-center justify-center pt-7">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-gray-400 group-hover:text-gray-600"
+                  className="h-8 w-8 text-gray-400 group-hover:text-gray-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -158,16 +179,16 @@ const PostEditor: React.FC<PostEditorProps> = ({
           <EditorContent editor={editor} />
         </div>
       </div>
-      <div className="mx-4 sm:mx-0 space-x-2 my-4">
+      <div className="mx-4 my-4 space-x-2 sm:mx-0">
         <button
           disabled={!postTitle}
-          className="btn btn-primary"
+          className="btn-primary btn"
           onClick={onButtonSaveClick}
         >
           Save
         </button>
         <NextLink href="/">
-          <button className="btn btn-ghost">Close</button>
+          <button className="btn-ghost btn">Close</button>
         </NextLink>
       </div>
     </>
