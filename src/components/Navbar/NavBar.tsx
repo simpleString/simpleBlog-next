@@ -14,19 +14,19 @@ const NavBar: React.FC = () => {
 
   return (
     <nav className="relative">
-      <div className="navbar fixed top-0 z-[100] bg-base-100 px-4 text-base-content backdrop-blur shadow">
+      <div className="navbar fixed top-0 z-[100] bg-base-100 px-4 text-base-content shadow backdrop-blur">
         <div className="navbar-start">
           <Logo />
         </div>
 
-        <div className="hidden md:flex md:navbar-center md:gap-10 max-w-lg w-full">
+        <div className="hidden w-full max-w-lg md:flex md:gap-10 md:navbar-center">
           <NavBarSearch
             searchMenuOpened={searchMenuOpened}
             setSearchMenuOpened={setSearchMenuOpened}
           />
 
           <NextLink href="/create-post">
-            <a className="btn btn-ghost normal-case text-xl">Create post</a>
+            <a className="btn-ghost btn text-xl normal-case">Create post</a>
           </NextLink>
         </div>
         <div className="navbar-end">
@@ -35,7 +35,7 @@ const NavBar: React.FC = () => {
               onClick={() => {
                 setSearchMenuOpened(!searchMenuOpened);
               }}
-              className="btn btn-ghost btn-square normal-case text-xl"
+              className="btn-ghost btn-square btn text-xl normal-case"
             >
               <i className="ri-search-line" />
             </a>
@@ -44,7 +44,7 @@ const NavBar: React.FC = () => {
             <IconMenu image={userData.image} />
           ) : (
             <a
-              className="btn btn-ghost normal-case text-xl"
+              className="btn-ghost btn text-xl normal-case"
               onClick={() => signIn()}
             >
               Sign in
@@ -63,3 +63,4 @@ const NavBar: React.FC = () => {
 };
 
 export default NavBar;
+

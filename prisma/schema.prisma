@@ -34,6 +34,18 @@ model Post {
   updatedAt DateTime @updatedAt
 }
 
+model Draft {
+  id     String @id @default(cuid())
+  title  String
+  text   String @db.Text
+  image  String? 
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Bookmark {
   post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     String
@@ -126,6 +138,8 @@ model User {
   commentLikes CommentLike[]
 
   bookmarks Bookmark[]
+
+  drafts Draft[]
 }
 
 model VerificationToken {

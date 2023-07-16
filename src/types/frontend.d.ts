@@ -25,3 +25,10 @@ export type PostOrderByFieldType = Pick<
   inferQueryInput<"post.posts">,
   "orderBy"
 >["orderBy"];
+
+export type CreatePostType = {
+  title: string;
+  text: string;
+  image: string | null;
+};
+

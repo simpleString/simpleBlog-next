@@ -1,62 +1,63 @@
-import Document from "@tiptap/extension-document";
 import Highlight from "@tiptap/extension-highlight";
 import ImageTipTap from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import debounce from "lodash.debounce";
 import NextImage from "next/image";
 import NextLink from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { SupabaseBackets } from "../../constants/supabase";
 import { fileUploader } from "../../utils/fileUploader";
+import { generateBase64Image } from "../../utils/generateBase64Image";
 import { MenuBar } from "./MenuBar";
 
+import { FileUploader } from "react-drag-drop-files";
+import { CreatePostType } from "../../types/frontend";
+
 type PostEditorProps = {
-  title: string;
-  text: string;
+  title?: string;
+  text?: string;
   image?: string | null;
-  savePost: ({
-    title,
-    text,
-    image,
-  }: {
-    title: string;
-    text: string;
-    image: string | null;
-  }) => void;
+  savePost: ({ title, text, image }: CreatePostType) => void;
+  saveDraft?: ({ title, text, image }: CreatePostType) => Promise<void>;
 };
+
+const fileTypes = ["JPG", "PNG", "JPEG"];
 
 const PostEditor: React.FC<PostEditorProps> = ({
   text,
   title,
   image = null,
   savePost,
+  saveDraft,
 }) => {
-  const [content, setContent] = useState(text);
-  const [postTitle, setPostTitle] = useState(title);
+  const [content, setContent] = useState(text ?? "");
+  const [postTitle, setPostTitle] = useState(title ?? "");
   const [postImage, setPostImage] = useState<string | null>(image);
 
   const onButtonClearImageClick = () => {
     setPostImage(null);
   };
 
-  const onFileChange = async (e: FormEvent<HTMLInputElement>) => {
-    const file = e.currentTarget.files?.[0];
-    if (!file) return;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const saveDraftDebounce = useCallback(
+    debounce(async ({ image, text, title }: CreatePostType) => {
+      if (saveDraft && (image || text || title)) {
+        await saveDraft({ title, text, image });
+      }
+    }, 3000),
+    []
+  );
 
-    const base64Image = await new Promise<string>((resolve, reject) => {
-      const fileReader = new FileReader();
+  useEffect(() => {
+    saveDraftDebounce({ image: postImage, text: content, title: postTitle });
+  }, [postTitle, content, postImage, saveDraftDebounce]);
 
-      fileReader.onload = () => {
-        if (fileReader.result) {
-          resolve(fileReader.result as string);
-        }
-        reject(null);
-      };
-      fileReader.readAsDataURL(file);
-    });
+  const onFileChange = async (file: File) => {
+    const base64Image = await generateBase64Image(file);
 
     setPostImage(base64Image);
 
@@ -82,7 +83,6 @@ const PostEditor: React.FC<PostEditorProps> = ({
       StarterKit,
       Highlight,
       Typography,
-      Document,
       ImageTipTap,
       Placeholder.configure({
         emptyEditorClass:
@@ -99,19 +99,10 @@ const PostEditor: React.FC<PostEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm focus:outline-none p-4 min-h-[200px] prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1",
+          "prose prose-sm focus:outline-none p-2 prose-img:my-1 prose-img:w-full max-w-none prose-headings:my-1 prose-p:my-1",
       },
     },
   });
-
-  useEffect(() => {
-    if (editor) {
-      try {
-        editor.commands?.setContent(content || "");
-      } catch (error) {}
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editor]);
 
   return (
     <>
@@ -145,33 +136,41 @@ const PostEditor: React.FC<PostEditorProps> = ({
             </div>
           )}
           {!postImage && (
-            <label className="flex h-32 w-full flex-col border-4 border-dashed border-blue-200 hover:border-gray-300 hover:bg-gray-100">
-              <div className="flex cursor-pointer flex-col items-center justify-center pt-7">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-gray-400 group-hover:text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
-                  Upload photo
-                </p>
-              </div>
-              <input
-                type="file"
-                className="opacity-0"
-                onChange={onFileChange}
-                accept="image/png, image/jpeg"
-              />
-            </label>
+            <FileUploader
+              handleChange={onFileChange}
+              name="file"
+              types={fileTypes}
+              classes="w-full"
+              maxSize={4}
+              onTypeError={() => {
+                toast.error("Incorrect file type");
+              }}
+              onSizeError={() => {
+                toast.error("File size more that 4mb");
+              }}
+            >
+              <label className="flex h-32 w-full cursor-pointer flex-col border-4 border-dashed border-blue-200 hover:border-gray-300 hover:bg-gray-100">
+                <div className="flex flex-col items-center justify-center pt-7">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-gray-400 group-hover:text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  <p className="pt-1 text-sm tracking-wider text-gray-400 group-hover:text-gray-600">
+                    Upload photo
+                  </p>
+                </div>
+              </label>
+            </FileUploader>
           )}
         </div>
         <div className="shadow">
@@ -196,3 +195,4 @@ const PostEditor: React.FC<PostEditorProps> = ({
 };
 
 export default PostEditor;
+

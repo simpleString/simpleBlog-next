@@ -295,6 +295,45 @@ export const postRouter = createRouter()
         },
       })
 
+      .mutation("draftPost", {
+        input: z.object({
+          id: z.string().cuid().optional(),
+          title: z.string(),
+          text: z.string(),
+          image: z.string().url().nullable(),
+        }),
+        async resolve({ input, ctx }) {
+          if (!input.id) {
+            return await ctx.prisma.draft.create({
+              data: {
+                ...input,
+                userId: ctx.session.user.id,
+              },
+            });
+          }
+
+          return await ctx.prisma.draft.update({
+            where: {
+              id: input.id,
+            },
+            data: {
+              ...input,
+            },
+          });
+        },
+      })
+
+      .query("draft", {
+        input: z.object({
+          id: z.string().cuid(),
+        }),
+        async resolve({ input, ctx }) {
+          return await ctx.prisma.draft.findFirst({
+            where: { id: input.id, userId: ctx.session.user.id },
+          });
+        },
+      })
+
       .mutation("createPost", {
         input: z.object({
           title: z.string(),
@@ -363,3 +402,4 @@ export const postRouter = createRouter()
         },
       })
   );
+

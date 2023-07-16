@@ -6,6 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { Layout } from "../layouts/Layout";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
+import { CreatePostType } from "../types/frontend";
 
 const UpdatePost: NextPageWithLayout<React.FC> = () => {
   const session = useSession({ required: true });
@@ -23,15 +24,7 @@ const UpdatePost: NextPageWithLayout<React.FC> = () => {
     },
   });
 
-  const updatePost = ({
-    title,
-    text,
-    image,
-  }: {
-    title: string;
-    text: string;
-    image: string | null;
-  }) => {
+  const updatePost = ({ title, text, image }: CreatePostType) => {
     if (!post) return;
     updatePostMutation.mutateAsync({ id: post.id, image, text, title });
     router.back();
@@ -58,3 +51,4 @@ UpdatePost.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default UpdatePost;
+
