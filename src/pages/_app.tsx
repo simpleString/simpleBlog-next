@@ -11,6 +11,8 @@ import type { AppProps } from "next/app";
 import type { ReactElement, ReactNode } from "react";
 import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
+import Modal from "react-modal";
+
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
   P,
   IP
@@ -21,6 +23,8 @@ export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
 };
+
+Modal.setAppElement("#__next");
 
 const MyApp = ({
   Component,

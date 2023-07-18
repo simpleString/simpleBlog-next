@@ -38,6 +38,8 @@ const PostEditor: React.FC<PostEditorProps> = ({
   const [postTitle, setPostTitle] = useState(title ?? "");
   const [postImage, setPostImage] = useState<string | null>(image);
 
+  const [isDraftSaved, setIsDraftSaved] = useState(true);
+
   const onButtonClearImageClick = () => {
     setPostImage(null);
   };
@@ -45,14 +47,19 @@ const PostEditor: React.FC<PostEditorProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const saveDraftDebounce = useCallback(
     debounce(async ({ image, text, title }: CreatePostType) => {
-      if (saveDraft && (image || text || title)) {
-        await saveDraft({ title, text, image });
+      if (saveDraft) {
+        try {
+          await saveDraft({ title, text, image });
+          setIsDraftSaved(true);
+        } catch (error) {}
       }
     }, 3000),
     []
   );
 
   useEffect(() => {
+    if (!(postImage || content || postTitle)) return;
+    setIsDraftSaved(false);
     saveDraftDebounce({ image: postImage, text: content, title: postTitle });
   }, [postTitle, content, postImage, saveDraftDebounce]);
 
@@ -189,10 +196,14 @@ const PostEditor: React.FC<PostEditorProps> = ({
         <NextLink href="/">
           <button className="btn-ghost btn">Close</button>
         </NextLink>
+        {isDraftSaved ? (
+          <span className="text-success">Saved</span>
+        ) : (
+          <span className="text-warning">Saving...</span>
+        )}
       </div>
     </>
   );
 };
 
 export default PostEditor;
-

@@ -8,6 +8,7 @@ import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
 
 import { CreatePostType } from "../types/frontend";
+import { toast } from "react-toastify";
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   const session = useSession({ required: true });
@@ -23,7 +24,11 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
       utils.invalidateQueries(["post.posts"]);
     },
   });
-  const draftMutation = trpc.useMutation(["post.draftPost"], {});
+  const draftMutation = trpc.useMutation(["post.draftPost"], {
+    onSuccess() {
+      utils.invalidateQueries(["post.drafts"]);
+    },
+  });
 
   const { data: draftData } = trpc.useQuery(
     ["post.draft", { id: draftId ?? "" }],
@@ -58,6 +63,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
         router.push(`/create-post?draftId=${draftedPost.id}`, undefined, {
           scroll: false,
         });
+        toast.success("Draft created");
       }
     },
     [draftId, draftMutation, router]
@@ -94,4 +100,3 @@ CreatePost.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default CreatePost;
-

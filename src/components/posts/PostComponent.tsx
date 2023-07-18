@@ -9,16 +9,16 @@ export type PostProps = { post: inferQueryOutput<"post.post"> };
 
 export const PostComponent: React.FC<PostProps> = ({ post }) => {
   return (
-    <div className="flex flex-col mb-8 shadow bg-base-200">
+    <div className="mb-8 flex flex-col bg-base-200 shadow">
       <PostHeader
         date={post.createdAt}
         image={post.user.image}
         username={post.user.name}
       />
 
-      <PostTitle title={post.title} postId={post.id} />
+      <PostTitle link={`/post/${post.id}`} title={post.title} />
 
-      {post.image && <PostImage image={post.image} postId={post.id} />}
+      {post.image && <PostImage image={post.image} link={`/post/${post.id}`} />}
       <InteractivePanel post={post} callbackUrl={"/"} />
     </div>
   );

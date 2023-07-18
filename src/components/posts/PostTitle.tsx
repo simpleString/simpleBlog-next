@@ -1,15 +1,15 @@
 import NextLink from "next/link";
 
 type PostTitleProps = {
-  postId: string;
   title: string;
+  link: string;
 };
 
-const PostTitle: React.FC<PostTitleProps> = ({ title, postId }) => {
+const PostTitle: React.FC<PostTitleProps> = ({ title, link }) => {
   return (
     <div>
-      <NextLink href={`/post/${postId}`}>
-        <a className="font-medium text-2xl mt-2 p-4">{title}</a>
+      <NextLink href={link}>
+        <a className="mt-2 p-4 text-2xl font-medium">{title}</a>
       </NextLink>
     </div>
   );

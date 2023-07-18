@@ -16,7 +16,7 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
       buttonComponent={
         <div className="w-10 rounded-full">
           <NextImage
-            className="rounded-full cursor-pointer"
+            className="cursor-pointer rounded-full"
             src={image || "/user-placeholder.jpg"}
             width="48"
             alt="Not image"
@@ -32,7 +32,9 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
         </NextLink>
       </li>
       <li>
-        <a>Drafts</a>
+        <NextLink href="/drafts">
+          <a>Drafts</a>
+        </NextLink>
       </li>
       <li>
         <NextLink href="/post/saved">

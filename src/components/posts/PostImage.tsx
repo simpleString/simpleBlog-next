@@ -3,12 +3,12 @@ import NextImage from "next/image";
 
 type PostImageProps = {
   image: string;
-  postId: string;
+  link: string;
 };
 
-const PostImage: React.FC<PostImageProps> = ({ postId, image }) => {
+const PostImage: React.FC<PostImageProps> = ({ image, link }) => {
   return (
-    <NextLink href={`/post/${postId}`} passHref>
+    <NextLink href={link} passHref>
       <div className="p-2">
         <NextImage
           className="cursor-pointer"

@@ -323,6 +323,28 @@ export const postRouter = createRouter()
         },
       })
 
+      .mutation("deleteDraft", {
+        input: z.object({
+          id: z.string().cuid(),
+        }),
+        async resolve({ input, ctx }) {
+          const draft = await ctx.prisma.draft.findFirst({
+            where: {
+              id: input.id,
+              userId: ctx.session.user.id,
+            },
+          });
+
+          if (!draft) throw new trpc.TRPCError({ code: "FORBIDDEN" });
+
+          return await ctx.prisma.draft.delete({
+            where: {
+              id: input.id,
+            },
+          });
+        },
+      })
+
       .query("draft", {
         input: z.object({
           id: z.string().cuid(),
@@ -330,6 +352,22 @@ export const postRouter = createRouter()
         async resolve({ input, ctx }) {
           return await ctx.prisma.draft.findFirst({
             where: { id: input.id, userId: ctx.session.user.id },
+          });
+        },
+      })
+
+      .query("drafts", {
+        async resolve({ ctx }) {
+          return await ctx.prisma.draft.findMany({
+            where: {
+              userId: ctx.session.user.id,
+            },
+            include: {
+              user: true,
+            },
+            orderBy: {
+              updatedAt: "desc",
+            },
           });
         },
       })
@@ -402,4 +440,3 @@ export const postRouter = createRouter()
         },
       })
   );
-

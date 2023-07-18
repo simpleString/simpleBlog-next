@@ -37,7 +37,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
     bookmarkMutation.mutateAsync({ postId });
   };
 
-  const isUserOwner = session.data?.user?.id;
+  const isUserOwner = session.data?.user?.id === post.userId;
 
   return (
     <div className="flex items-center p-4 pb-2">
