@@ -1,13 +1,11 @@
-import { ReactElement } from "react";
 import { Layout } from "../layouts/Layout";
-import { NextPageWithLayout } from "./_app";
 
-const NotFound: NextPageWithLayout<React.FC> = () => {
-  return <div className="text-center">5xx</div>;
+const ServerErrorPage = () => {
+  return (
+    <div className="text-center">
+      <Layout>5xx</Layout>
+    </div>
+  );
 };
 
-NotFound.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>;
-};
-
-export default NotFound;
+export default ServerErrorPage;

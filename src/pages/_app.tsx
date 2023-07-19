@@ -9,9 +9,12 @@ import "../styles/globals.css";
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
 import type { ReactElement, ReactNode } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
+import { TRPCClientError } from "@trpc/client";
 import Modal from "react-modal";
+import ServerErrorPage from "./500";
 
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
   P,
@@ -36,7 +39,9 @@ const MyApp = ({
 
   return (
     <SessionProvider session={session}>
-      {getLayout(<Component {...pageProps} />)}
+      <ErrorBoundary fallback={<ServerErrorPage />}>
+        {getLayout(<Component {...pageProps} />)}
+      </ErrorBoundary>
     </SessionProvider>
   );
 };
@@ -48,7 +53,7 @@ export const getBaseUrl = () => {
 };
 
 export default withTRPC<AppRouter>({
-  config({}) {
+  config() {
     /**
      * If you want to use SSR, you need to use the server's full URL
      * @link https://trpc.io/docs/ssr
@@ -67,7 +72,40 @@ export default withTRPC<AppRouter>({
 
       queryClientConfig: {
         defaultOptions: {
-          queries: { staleTime: 1000 * 60 * 3, refetchOnWindowFocus: false },
+          queries: {
+            staleTime: 1000 * 60 * 3,
+            refetchOnWindowFocus: false,
+            useErrorBoundary(error) {
+              if (error instanceof TRPCClientError) {
+                if (error.data.httpStatus >= 500) return true;
+                return false;
+              }
+              return true;
+            },
+            onError(error) {
+              if (error instanceof TRPCClientError) {
+                if (error.data.code === "NOT_FOUND") {
+                  return (document.location = "/404");
+                }
+              }
+            },
+          },
+          mutations: {
+            useErrorBoundary(error) {
+              if (error instanceof TRPCClientError) {
+                if (error.data.httpStatus >= 500) return true;
+                return false;
+              }
+              return true;
+            },
+            onError(error) {
+              if (error instanceof TRPCClientError) {
+                if (error.data.code === "NOT_FOUND") {
+                  document.location = "/404";
+                }
+              }
+            },
+          },
         },
       },
     };

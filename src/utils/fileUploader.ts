@@ -1,6 +1,8 @@
-import { SupabaseBackets } from "../constants/supabase";
-import { supabase } from "./supabaseClient";
 import { v4 as uuidv4 } from "uuid";
+import { FILE_TYPES, MAX_FILE_SIZE } from "../constants/frontend";
+import { SupabaseBackets } from "../constants/supabase";
+import { checkFileType } from "./checkFileType";
+import { supabase } from "./supabaseClient";
 
 export const fileUploader = async ({
   file,
@@ -9,13 +11,22 @@ export const fileUploader = async ({
   file: File;
   backet: SupabaseBackets;
 }) => {
+  console.log("file uploading");
+
+  if (file.size > MAX_FILE_SIZE * 1000000)
+    throw new Error(`File size more that ${MAX_FILE_SIZE}mb`);
+  if (!checkFileType(file, FILE_TYPES)) throw new Error("Incorrect file type");
+
+  console.log(file.size > MAX_FILE_SIZE * 1000000);
+  console.log(checkFileType(file, FILE_TYPES));
+
   const fileExt = file.name.split(".").pop();
   const fileName = `${uuidv4()}.${fileExt}`;
 
   const { error: uploadError, data } = await supabase.storage
     .from(backet)
     .upload(fileName, file);
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error(uploadError.message);
 
   const { data: publicData } = supabase.storage
     .from(backet)

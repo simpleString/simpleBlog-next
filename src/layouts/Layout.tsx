@@ -24,7 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({
       <NavBar />
       <div className="mt-20 flex">
         <div className="mx-auto min-h-screen w-full sm:max-w-2xl">
-          <ToastContainer />
+          <ToastContainer closeButton={false} limit={4} />
           {children}
         </div>
       </div>

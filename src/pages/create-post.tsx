@@ -1,19 +1,28 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ReactElement, useCallback } from "react";
+import { ReactElement, useCallback, useEffect, useRef } from "react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import PostEditor from "../components/editor/PostEditor";
 import { Layout } from "../layouts/Layout";
 import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
 
-import { CreatePostType } from "../types/frontend";
 import { toast } from "react-toastify";
+import { CreatePostType } from "../types/frontend";
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   const session = useSession({ required: true });
 
   const router = useRouter();
+
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const draftId = router.query.draftId as string | undefined;
 
@@ -22,24 +31,28 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
   const createPostMutation = trpc.useMutation(["post.createPost"], {
     onSuccess() {
       utils.invalidateQueries(["post.posts"]);
-    },
-  });
-  const draftMutation = trpc.useMutation(["post.draftPost"], {
-    onSuccess() {
       utils.invalidateQueries(["post.drafts"]);
     },
   });
+  const draftMutation = trpc.useMutation(["post.draftPost"], {
+    onSuccess(draft) {
+      utils.invalidateQueries(["post.drafts"]);
+      utils.setQueryData(["post.draft", { id: draft.id }], draft);
+    },
+  });
 
-  const { data: draftData } = trpc.useQuery(
+  const { data: draftData, isLoading } = trpc.useQuery(
     ["post.draft", { id: draftId ?? "" }],
     {
       enabled: !!draftId,
+      retry: false,
     }
   );
 
   const savePost = useCallback(
     async ({ title, text, image }: CreatePostType) => {
       await createPostMutation.mutateAsync({
+        draftId,
         text,
         image,
         title,
@@ -47,11 +60,13 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
 
       router.push("/");
     },
-    [createPostMutation, router]
+    [createPostMutation, draftId, router]
   );
 
   const saveDraft = useCallback(
     async ({ title, text, image }: CreatePostType) => {
+      if (!mounted.current) return;
+
       const draftedPost = await draftMutation.mutateAsync({
         id: draftId,
         text,
@@ -66,31 +81,21 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
         toast.success("Draft created");
       }
     },
-    [draftId, draftMutation, router]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [draftMutation, router]
   );
 
-  if (session.status === "loading") return <LoadingSpinner />;
+  if (session.status === "loading" || isLoading) return <LoadingSpinner />;
 
   return (
     <>
-      {draftData ? (
-        <PostEditor
-          key={"props"}
-          savePost={savePost}
-          saveDraft={saveDraft}
-          image={draftData?.image}
-          text={draftData?.text}
-          title={draftData?.title}
-        />
-      ) : (
-        <div>
-          <PostEditor
-            key={"without"}
-            savePost={savePost}
-            saveDraft={saveDraft}
-          />
-        </div>
-      )}
+      <PostEditor
+        savePost={savePost}
+        saveDraft={saveDraft}
+        image={draftData?.image ?? null}
+        text={draftData?.text ?? ""}
+        title={draftData?.title ?? ""}
+      />
     </>
   );
 };

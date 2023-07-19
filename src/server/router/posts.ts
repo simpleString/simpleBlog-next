@@ -1,4 +1,4 @@
-import { Post, User } from "@prisma/client";
+import { Post, Prisma, User } from "@prisma/client";
 import * as trpc from "@trpc/server";
 import { z } from "zod";
 import { DEFAULT_POST_LIMIT } from "../../constants/backend";
@@ -350,9 +350,17 @@ export const postRouter = createRouter()
           id: z.string().cuid(),
         }),
         async resolve({ input, ctx }) {
-          return await ctx.prisma.draft.findFirst({
-            where: { id: input.id, userId: ctx.session.user.id },
-          });
+          try {
+            return await ctx.prisma.draft.findFirstOrThrow({
+              where: { id: input.id, userId: ctx.session.user.id },
+            });
+          } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+              if (error.code === "P2025") {
+                throw new trpc.TRPCError({ code: "NOT_FOUND" });
+              }
+            }
+          }
         },
       })
 
@@ -374,13 +382,31 @@ export const postRouter = createRouter()
 
       .mutation("createPost", {
         input: z.object({
+          draftId: z.string().cuid().optional(),
           title: z.string(),
           text: z.string(),
           image: z.string().url().nullable(),
         }),
         async resolve({ input, ctx }) {
+          const { draftId, image, text, title } = input;
+
+          if (draftId) {
+            const draft = await ctx.prisma.draft.findFirst({
+              where: {
+                id: draftId,
+                userId: ctx.session.user.id,
+              },
+            });
+            if (!draft) throw new trpc.TRPCError({ code: "FORBIDDEN" });
+            await ctx.prisma.draft.delete({
+              where: {
+                id: draft.id,
+              },
+            });
+          }
+
           return ctx.prisma.post.create({
-            data: { ...input, userId: ctx.session.user.id },
+            data: { userId: ctx.session.user.id, image, text, title },
           });
         },
       })

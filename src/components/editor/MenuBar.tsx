@@ -1,9 +1,9 @@
 import { Editor } from "@tiptap/react";
 import { FormEvent, useRef } from "react";
+import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
 import { SupabaseBackets } from "../../constants/supabase";
 import { fileUploader } from "../../utils/fileUploader";
-import { generateBase64Image } from "../../utils/generateBase64Image";
 
 export const MenuBar = ({ editor }: { editor: Editor | null }) => {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -16,20 +16,41 @@ export const MenuBar = ({ editor }: { editor: Editor | null }) => {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
 
-    const base64Image = await generateBase64Image(file);
-
-    editor
-      .chain()
-      .focus()
-      .createParagraphNear()
-      .setImage({ src: base64Image })
-      .createParagraphNear()
-      .run();
-
-    await fileUploader({
-      file,
-      backet: SupabaseBackets.FILE,
+    const toastId = toast.loading("📦 Uploading image...", {
+      position: "bottom-center",
     });
+
+    try {
+      const filePath = await fileUploader({
+        file,
+        backet: SupabaseBackets.FILE,
+      });
+      editor
+        .chain()
+        .focus()
+        .createParagraphNear()
+        .setImage({ src: filePath })
+        .createParagraphNear()
+        .run();
+
+      toast.update(toastId, {
+        type: "success",
+        render: "🎉 Image uploaded",
+        autoClose: 3000,
+        isLoading: false,
+        closeButton: true,
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.update(toastId, {
+          type: "error",
+          render: error.message,
+          autoClose: 3000,
+          isLoading: false,
+          closeButton: true,
+        });
+      }
+    }
 
     if (fileRef.current) fileRef.current.value = "";
   };
@@ -206,4 +227,3 @@ export const MenuBar = ({ editor }: { editor: Editor | null }) => {
     </div>
   );
 };
-

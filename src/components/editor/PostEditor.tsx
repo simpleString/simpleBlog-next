@@ -1,5 +1,5 @@
 import Highlight from "@tiptap/extension-highlight";
-import ImageTipTap from "@tiptap/extension-image";
+// import ImageTipTap, { Image } from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -17,6 +17,9 @@ import { MenuBar } from "./MenuBar";
 import { FileUploader } from "react-drag-drop-files";
 import { CreatePostType } from "../../types/frontend";
 
+import { FILE_TYPES, MAX_FILE_SIZE } from "../../constants/frontend";
+import { TipTapCustomImage } from "../../utils/lib/Tiptap/TipTapCustomImage";
+
 type PostEditorProps = {
   title?: string;
   text?: string;
@@ -24,8 +27,6 @@ type PostEditorProps = {
   savePost: ({ title, text, image }: CreatePostType) => void;
   saveDraft?: ({ title, text, image }: CreatePostType) => Promise<void>;
 };
-
-const fileTypes = ["JPG", "PNG", "JPEG"];
 
 const PostEditor: React.FC<PostEditorProps> = ({
   text,
@@ -64,6 +65,10 @@ const PostEditor: React.FC<PostEditorProps> = ({
   }, [postTitle, content, postImage, saveDraftDebounce]);
 
   const onFileChange = async (file: File) => {
+    const toastId = toast.loading("📦 Uploading image...", {
+      position: "bottom-center",
+    });
+
     const base64Image = await generateBase64Image(file);
 
     setPostImage(base64Image);
@@ -73,11 +78,26 @@ const PostEditor: React.FC<PostEditorProps> = ({
         file,
         backet: SupabaseBackets.FILE,
       });
+      toast.update(toastId, {
+        type: "success",
+        render: "🎉Image uploaded",
+        autoClose: 3000,
+        isLoading: false,
+        closeButton: true,
+      });
 
       setPostImage(photoUrl);
     } catch (error) {
-      toast.error("Can't upload image");
-      setPostImage(null);
+      if (error instanceof Error) {
+        toast.update(toastId, {
+          type: "error",
+          render: error.message,
+          autoClose: 3000,
+          isLoading: false,
+          closeButton: true,
+        });
+        setPostImage(null);
+      }
     }
   };
 
@@ -90,7 +110,36 @@ const PostEditor: React.FC<PostEditorProps> = ({
       StarterKit,
       Highlight,
       Typography,
-      ImageTipTap,
+      TipTapCustomImage(async (file: File) => {
+        const toastId = toast.loading("📦 Uploading image...", {
+          position: "bottom-center",
+        });
+        try {
+          const filePath = await fileUploader({
+            file,
+            backet: SupabaseBackets.FILE,
+          });
+          toast.update(toastId, {
+            type: "success",
+            render: "🎉 Image uploaded",
+            autoClose: 3000,
+            isLoading: false,
+            closeButton: true,
+          });
+          return filePath;
+        } catch (error) {
+          if (error instanceof Error) {
+            toast.update(toastId, {
+              type: "error",
+              render: error.message,
+              autoClose: 3000,
+              isLoading: false,
+              closeButton: true,
+            });
+          }
+          return "";
+        }
+      }),
       Placeholder.configure({
         emptyEditorClass:
           "before:content-[attr(data-placeholder)] before:float-left before:text-gray-400 before:pointer-events-none before:h-0 ",
@@ -113,7 +162,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
 
   return (
     <>
-      <div className="space-y-4 shadow sm:p-4">
+      <div className="space-y-4 shadow sm:p-4 ">
         <div className="w-full">
           <input
             className="input-bordered input w-full "
@@ -146,14 +195,14 @@ const PostEditor: React.FC<PostEditorProps> = ({
             <FileUploader
               handleChange={onFileChange}
               name="file"
-              types={fileTypes}
+              types={FILE_TYPES}
               classes="w-full"
-              maxSize={4}
+              maxSize={MAX_FILE_SIZE}
               onTypeError={() => {
                 toast.error("Incorrect file type");
               }}
               onSizeError={() => {
-                toast.error("File size more that 4mb");
+                toast.error(`File size more that ${MAX_FILE_SIZE}mb`);
               }}
             >
               <label className="flex h-32 w-full cursor-pointer flex-col border-4 border-dashed border-blue-200 hover:border-gray-300 hover:bg-gray-100">
