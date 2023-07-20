@@ -4,6 +4,7 @@ import * as trpcNext from "@trpc/server/adapters/next";
 import { Session, getServerSession } from "next-auth";
 import { authOptions as nextAuthOptions } from "../../pages/api/auth/[...nextauth]";
 import { prisma } from "../db/client";
+import { createClientRedis } from "../cache/client";
 
 type CreateContextOptions = {
   session: Session | null;
@@ -15,6 +16,7 @@ type CreateContextOptions = {
  **/
 export const createContextInner = async (opts: CreateContextOptions) => {
   return {
+    redis: createClientRedis(),
     session: opts.session,
     prisma,
   };

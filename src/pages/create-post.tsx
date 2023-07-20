@@ -81,21 +81,33 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
         toast.success("Draft created");
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [draftMutation, router]
+
+    [draftId, draftMutation, router]
   );
 
   if (session.status === "loading" || isLoading) return <LoadingSpinner />;
 
   return (
     <>
-      <PostEditor
-        savePost={savePost}
-        saveDraft={saveDraft}
-        image={draftData?.image ?? null}
-        text={draftData?.text ?? ""}
-        title={draftData?.title ?? ""}
-      />
+      {draftData ? (
+        <PostEditor
+          key={"editor"}
+          savePost={savePost}
+          saveDraft={saveDraft}
+          image={draftData?.image ?? null}
+          text={draftData?.text ?? ""}
+          title={draftData?.title ?? ""}
+        />
+      ) : (
+        <PostEditor
+          key={"notEditor"}
+          savePost={savePost}
+          saveDraft={saveDraft}
+          image={null}
+          text={""}
+          title={""}
+        />
+      )}
     </>
   );
 };

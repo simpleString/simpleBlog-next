@@ -6,6 +6,8 @@ import { prisma } from "../../../server/db/client";
 
 import GoogleProvider from "next-auth/providers/google";
 
+import { env } from "../../../env/server.mjs";
+
 export const authOptions: NextAuthOptions = {
   // Include user.id on session
   callbacks: {
@@ -16,13 +18,13 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.SECRET,
+  secret: env.NEXTAUTH_SECRET,
   // Configure one or more authentication providers
   adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     // ...add more providers here
   ],

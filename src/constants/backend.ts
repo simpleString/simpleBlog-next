@@ -16,3 +16,5 @@ export const HOT_LIKES_THRESHOLD = 0;
 export const NEGATIVE_THRESHOLD_COMMENTS = 10;
 
 export const DEFAULT_POST_LIMIT = 50;
+
+export const EXPIRATION_TIME_FOR_REDIS = 60 * 3; // 60 sec * 3 = 3 min

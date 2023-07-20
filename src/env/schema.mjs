@@ -12,6 +12,10 @@ export const serverSchema = z.object({
   NEXTAUTH_URL: z.string().url(),
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
+
+  REDIS_HOST: z.string(),
+  REDIS_PASSWORD: z.string(),
+  REDIS_PORT: z.string(),
 });
 
 /**

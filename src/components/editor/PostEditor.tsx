@@ -7,7 +7,7 @@ import StarterKit from "@tiptap/starter-kit";
 import debounce from "lodash.debounce";
 import NextImage from "next/image";
 import NextLink from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { SupabaseBackets } from "../../constants/supabase";
 import { fileUploader } from "../../utils/fileUploader";
@@ -41,6 +41,8 @@ const PostEditor: React.FC<PostEditorProps> = ({
 
   const [isDraftSaved, setIsDraftSaved] = useState(true);
 
+  const mounted = useRef(false);
+
   const onButtonClearImageClick = () => {
     setPostImage(null);
   };
@@ -59,7 +61,11 @@ const PostEditor: React.FC<PostEditorProps> = ({
   );
 
   useEffect(() => {
-    if (!(postImage || content || postTitle)) return;
+    if (!(postImage || content || postTitle) || !mounted.current) {
+      mounted.current = true;
+      return;
+    }
+
     setIsDraftSaved(false);
     saveDraftDebounce({ image: postImage, text: content, title: postTitle });
   }, [postTitle, content, postImage, saveDraftDebounce]);

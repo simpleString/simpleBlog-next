@@ -36,7 +36,6 @@ export const postRouter = createRouter()
     async resolve({ ctx, input }): Promise<InfinitePostsOutputType> {
       const limit = input.limit ?? DEFAULT_POST_LIMIT;
       const { cursor, skip } = input;
-
       const { posts, nextCursor } = await getPosts({
         ctx,
         cursor,
