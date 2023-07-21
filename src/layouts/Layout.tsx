@@ -1,12 +1,16 @@
 import Head from "next/head";
-import { Footer } from "../components/Footer";
-import NavBar from "../components/Navbar/NavBar";
 import { ToastContainer } from "react-toastify";
+// import NavBar from "../components/Navbar/NavBar";
+import dynamic from "next/dynamic";
 interface LayoutProps {
   children: React.ReactNode;
   pageTitle?: string;
   description?: string;
 }
+
+const NavBar = dynamic(() => import("../components/Navbar/NavBar"), {
+  ssr: false,
+});
 
 export const Layout: React.FC<LayoutProps> = ({
   children,
@@ -28,7 +32,6 @@ export const Layout: React.FC<LayoutProps> = ({
           {children}
         </div>
       </div>
-      <Footer />
     </>
   );
 };

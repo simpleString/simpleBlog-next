@@ -52,7 +52,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       <ul
         tabIndex={0}
         className={twMerge(
-          "p-2 shadow menu dropdown-content bg-base-100 w-52 text-neutral",
+          "dropdown-content menu w-52 bg-base-100 p-2 shadow",
           childrenClasses
         )}
         onBlur={() => {

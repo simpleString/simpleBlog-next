@@ -46,7 +46,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
   const createLikeMutation = useLikeCommentMutation({ comment, order });
 
   const onSubmitEdit = async (text: string) => {
-    checkIsAuth();
+    if (!checkIsAuth()) return;
 
     await updateCommentMutation.mutateAsync({
       postId: comment.id,
@@ -96,7 +96,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
         <>
           {areChildrenOpen && isCommentHaveChildren && (
             <button
-              className="absolute top-12 left-0 w-3 h-[calc(100%_-_theme(spacing.12))] border-l-4 border-r-4 border-transparent bg-[rgba(0,_0,_0,_0.1)] bg-clip-padding hover:bg-[rgba(0,_0,_0,_0.3)]"
+              className="absolute top-12 left-0 h-[calc(100%_-_theme(spacing.12))] w-3 border-l-4 border-r-4 border-transparent bg-base-content bg-clip-padding opacity-10 hover:opacity-30"
               onClick={() => setAreChildrenOpen(!areChildrenOpen)}
             />
           )}
@@ -120,19 +120,19 @@ const CommentRow: React.FC<CommentRowProps> = ({
               <p className="text-base">{comment.text}</p>
             )}
 
-            <div className="flex gap-2 mt-2">
+            <div className="mt-2 flex gap-2">
               <LikeControlComponent
                 callbackFn={changeLikeForComment}
                 likeValue={comment.likedByMe}
                 likesCount={comment.commentLikesValue}
               />
               <button
-                className="motion-safe:hover:scale-110 duration-500"
+                className="duration-500 motion-safe:hover:scale-110"
                 onClick={() => toggleReplyMode(!isReplyMode)}
               >
                 <span className="text-base">
                   <i
-                    className={`align-text-bottom ri-xl ${
+                    className={`ri-xl align-text-bottom ${
                       isReplyMode
                         ? "ri-chat-1-fill text-primary"
                         : "ri-chat-1-line"

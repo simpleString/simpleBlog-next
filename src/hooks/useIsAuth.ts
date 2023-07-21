@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { getBaseUrl } from "../pages/_app";
 
-export const useIsAuthCheck = (callbackUrl: string): (() => void) => {
+export const useIsAuthCheck = (callbackUrl: string) => {
   const router = useRouter();
   const session = useSession();
 
@@ -13,7 +13,9 @@ export const useIsAuthCheck = (callbackUrl: string): (() => void) => {
           getBaseUrl() +
           callbackUrl
       );
+      return false;
     }
+    return true;
   };
 
   return checkAuth;

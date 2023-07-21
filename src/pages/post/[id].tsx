@@ -51,6 +51,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
                   width="640"
                   height="360"
                   loading="lazy"
+                  objectFit="contain"
                 />
               </div>
             )}
@@ -86,4 +87,3 @@ Post.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default Post;
-

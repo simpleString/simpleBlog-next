@@ -5,7 +5,6 @@ import { useLikePostMutation } from "../hooks/api/useLikePostMutation";
 import { useIsAuthCheck } from "../hooks/useIsAuth";
 import { inferQueryOutput } from "../utils/trpc";
 import LikeControlComponent from "./LikeControlComponent";
-import { toast } from "react-toastify";
 
 type InteractivePanelProps = {
   post: Exclude<inferQueryOutput<"post.post">, null>;
@@ -26,7 +25,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   const bookmarkMutation = useBookmarkMutation({ post });
 
   const changeLikeForPost = async (isPositive: boolean) => {
-    checkIsAuth();
+    if (!checkIsAuth()) return;
     await createLikeMutation.mutateAsync({
       isPositive,
       postId: post.id,

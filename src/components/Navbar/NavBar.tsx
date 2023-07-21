@@ -2,6 +2,7 @@ import { signIn } from "next-auth/react";
 import NextLink from "next/link";
 import { useState } from "react";
 import { trpc } from "../../utils/trpc";
+import ColorModeSwitcher from "./ColorModeSwitcher";
 import IconMenu from "./IconMenu";
 import Logo from "./Logo";
 import MobileNavBarSearch from "./MobileNavBarSearch";
@@ -40,6 +41,7 @@ const NavBar: React.FC = () => {
               <i className="ri-search-line" />
             </a>
           </div>
+          <ColorModeSwitcher />
           {userData ? (
             <IconMenu image={userData.image} />
           ) : (
@@ -63,4 +65,3 @@ const NavBar: React.FC = () => {
 };
 
 export default NavBar;
-

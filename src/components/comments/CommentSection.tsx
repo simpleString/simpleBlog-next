@@ -73,7 +73,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({
   ]);
 
   const onSubmitComment = async (text: string) => {
-    checkIsAuth();
+    if (!checkIsAuth()) return;
+
     await createCommentMutation.mutateAsync({
       postId,
       text,

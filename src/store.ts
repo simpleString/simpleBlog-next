@@ -15,6 +15,12 @@ type OrderPostStore = {
   changeOrder: (order: PostOrderByFieldType) => void;
 };
 
+type ThemeType = "bumblebee" | "dark";
+type ThemeStore = {
+  theme: ThemeType;
+  setTheme: (theme: ThemeType) => void;
+};
+
 export const useOrderCommentStore = create<OrderCommentStore>()(
   persist(
     (set) => ({
@@ -40,3 +46,14 @@ export const useOrderSearchPostsStore = create<OrderPostStore>()((set) => ({
   changeOrder: (order) => set({ order }),
 }));
 
+export const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      theme: "bumblebee",
+      setTheme(theme) {
+        set({ theme });
+      },
+    }),
+    { name: "theme" }
+  )
+);

@@ -8,7 +8,7 @@ import "../styles/globals.css";
 
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, type ReactElement, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
