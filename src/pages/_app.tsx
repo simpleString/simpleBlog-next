@@ -8,12 +8,13 @@ import "../styles/globals.css";
 
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
-import { useEffect, type ReactElement, type ReactNode } from "react";
+import { type ReactElement, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
 import { TRPCClientError } from "@trpc/client";
 import Modal from "react-modal";
+import { toast } from "react-toastify";
 import ServerErrorPage from "./500";
 
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
@@ -86,6 +87,8 @@ export default withTRPC<AppRouter>({
               if (error instanceof TRPCClientError) {
                 if (error.data.code === "NOT_FOUND") {
                   return (document.location = "/404");
+                } else {
+                  toast.error("Something went wrong");
                 }
               }
             },
@@ -102,6 +105,8 @@ export default withTRPC<AppRouter>({
               if (error instanceof TRPCClientError) {
                 if (error.data.code === "NOT_FOUND") {
                   document.location = "/404";
+                } else {
+                  toast.error("Something went wrong");
                 }
               }
             },

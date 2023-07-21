@@ -104,7 +104,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
             comment={comment}
             formattedDate={formattedDate}
             isEditMode={isEditMode}
-            sessionStatus={session.status}
+            session={session}
             toggleEditMode={toggleEditMode}
           />
 

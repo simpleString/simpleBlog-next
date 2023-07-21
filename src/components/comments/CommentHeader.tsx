@@ -1,5 +1,6 @@
 import NextImage from "next/image";
 import { inferQueryOutput } from "../../utils/trpc";
+import { useSession } from "next-auth/react";
 type commentType = inferQueryOutput<"comment.getComments">[0];
 
 type CommentHeaderType = {
@@ -7,7 +8,7 @@ type CommentHeaderType = {
   comment: commentType;
   isEditMode: boolean;
   formattedDate: string | undefined;
-  sessionStatus: string;
+  session: ReturnType<typeof useSession>;
 };
 
 const CommentHeader: React.FC<CommentHeaderType> = ({
@@ -15,8 +16,10 @@ const CommentHeader: React.FC<CommentHeaderType> = ({
   toggleEditMode,
   isEditMode,
   formattedDate,
-  sessionStatus,
+  session,
 }) => {
+  const isUserOwner = session.data?.user?.id === comment.userId;
+
   return (
     <div className="flex items-center gap-4">
       <NextImage
@@ -37,9 +40,9 @@ const CommentHeader: React.FC<CommentHeaderType> = ({
           <p>{formattedDate}</p>
         </div>
       </div>
-      {sessionStatus === "authenticated" && (
+      {session.status === "authenticated" && isUserOwner && (
         <button
-          className="ml-auto motion-safe:hover:scale-105 duration-500"
+          className="ml-auto duration-500 motion-safe:hover:scale-105"
           onClick={() => toggleEditMode(!isEditMode)}
         >
           <span className="text-base">

@@ -97,7 +97,7 @@ const MainPostComment: React.FC<MainPostCommentProps> = ({
         comment={comment}
         formattedDate={formattedDate}
         isEditMode={isEditMode}
-        sessionStatus={session.status}
+        session={session}
         toggleEditMode={toggleEditMode}
       />
 
