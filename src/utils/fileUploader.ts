@@ -11,14 +11,9 @@ export const fileUploader = async ({
   file: File;
   backet: SupabaseBackets;
 }) => {
-  console.log("file uploading");
-
   if (file.size > MAX_FILE_SIZE * 1000000)
     throw new Error(`File size more that ${MAX_FILE_SIZE}mb`);
   if (!checkFileType(file, FILE_TYPES)) throw new Error("Incorrect file type");
-
-  console.log(file.size > MAX_FILE_SIZE * 1000000);
-  console.log(checkFileType(file, FILE_TYPES));
 
   const fileExt = file.name.split(".").pop();
   const fileName = `${uuidv4()}.${fileExt}`;
