@@ -8,7 +8,7 @@ import "../styles/globals.css";
 
 import type { NextPage } from "next";
 import type { AppProps } from "next/app";
-import { type ReactElement, type ReactNode } from "react";
+import { useEffect, type ReactElement, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { usePreserveScroll } from "../hooks/usePreserveScroll";
 
@@ -16,6 +16,7 @@ import { TRPCClientError } from "@trpc/client";
 import Modal from "react-modal";
 import { toast } from "react-toastify";
 import ServerErrorPage from "./500";
+import { useThemeStore } from "../store";
 
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
   P,
@@ -37,6 +38,13 @@ const MyApp = ({
   const getLayout = Component.getLayout ?? ((page) => page);
 
   usePreserveScroll();
+
+  const colorTheme = useThemeStore((store) => store.theme);
+
+  useEffect(() => {
+    const body = document.body;
+    body.setAttribute("data-theme", colorTheme);
+  }, [colorTheme]);
 
   return (
     <SessionProvider session={session}>

@@ -44,12 +44,12 @@ const NavBar: React.FC = () => {
           {userData ? (
             <IconMenu image={userData.image} />
           ) : (
-            <a
+            <button
               className="btn-ghost btn text-xl normal-case"
               onClick={() => signIn()}
             >
               Sign in
-            </a>
+            </button>
           )}
         </div>
       </div>

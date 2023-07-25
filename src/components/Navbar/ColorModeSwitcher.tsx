@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useThemeStore } from "../../store";
 
 const ColorModeSwitcher = () => {
@@ -7,11 +6,6 @@ const ColorModeSwitcher = () => {
   const toggleTheme = () => {
     setTheme(theme === "bumblebee" ? "dark" : "bumblebee");
   };
-
-  useEffect(() => {
-    const body = document.body;
-    body.setAttribute("data-theme", theme);
-  }, [theme]);
 
   return (
     <label

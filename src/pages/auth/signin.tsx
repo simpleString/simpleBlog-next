@@ -1,5 +1,5 @@
 import { InferGetServerSidePropsType } from "next";
-import { getProviders, signIn } from "next-auth/react";
+import { getProviders, signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import NextLink from "next/link";
 
@@ -7,12 +7,19 @@ const Signin: React.FC<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ providers }) => {
   const router = useRouter();
+
+  const session = useSession();
+
+  if (session.status === "authenticated") {
+    router.replace("/");
+  }
+
   const callbackUrl = router.query.callbackUrl as string;
 
   return (
-    <div className="h-screen flex justify-center items-center bg-[url(/background.svg)] bg-no-repeat bg-center bg-auto bg-origin-border">
-      <div className=" ">
-        <div className="font-extrabold text-transparent text-5xl sm:text-8xl bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-400 p-4 mb-8 text-center">
+    <div className="flex h-screen items-center justify-center bg-base-100 bg-[url(/background.svg)] bg-center bg-no-repeat bg-origin-border">
+      <div>
+        <div className="mb-8 bg-gradient-to-r from-blue-500 to-emerald-400 bg-clip-text p-4 text-center text-5xl font-extrabold text-transparent sm:text-8xl">
           <NextLink href="/">
             <a>SimpleBlog</a>
           </NextLink>
@@ -20,13 +27,13 @@ const Signin: React.FC<
         <div key={providers?.google.id} className="flex justify-center">
           <button
             onClick={() => signIn(providers?.google.id, { callbackUrl })}
-            className="flex items-center btn btn-outline"
+            className="btn-outline btn-accent btn flex items-center"
           >
             <svg
               version="1.1"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 48 48"
-              className="c-third_party_auth__icon w-6 h-6 mr-2"
+              className="c-third_party_auth__icon mr-2 h-6 w-6"
             >
               <g>
                 <path

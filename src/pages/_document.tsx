@@ -1,10 +1,10 @@
-import { Html, Head, Main, NextScript } from "next/document";
+import { Head, Html, Main, NextScript } from "next/document";
 
 export default function Document() {
   return (
-    <Html data-theme="bumblebee">
+    <Html>
       <Head />
-      <body>
+      <body data-theme="bumblebee">
         <Main />
         <NextScript />
       </body>
