@@ -2,13 +2,13 @@ import dynamic from "next/dynamic";
 import NextImage from "next/image";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useRef, useState } from "react";
+import HeadBodyGrid from "../../components/HeadBodygrid";
 import InteractivePanel from "../../components/InteractivePanel";
 import PostHeader from "../../components/posts/PostHeader";
 import { useOnScreen } from "../../hooks/useOnScreen";
 import { Layout } from "../../layouts/Layout";
 import { trpc } from "../../utils/trpc";
 import { NextPageWithLayout } from "../_app";
-import HeadBodyGrid from "../../components/HeadBodygrid";
 
 const CommentSection = dynamic(
   () => import("../../components/comments/CommentSection")
@@ -27,8 +27,9 @@ const Post: NextPageWithLayout<React.FC> = () => {
 
   // Disable rerender component
   useEffect(() => {
-    if (!isChildRendered) setIsChildRendered(isOnScreen);
-  }, [isChildRendered, isOnScreen]);
+    if (!isChildRendered && !postQuery.isLoading)
+      setIsChildRendered(isOnScreen);
+  }, [isChildRendered, isOnScreen, postQuery.isLoading]);
 
   return (
     <div className="space-y-4 sm:p-4">
@@ -68,7 +69,6 @@ const Post: NextPageWithLayout<React.FC> = () => {
           </>
         )}
       </div>
-
       <div ref={commentRef} id="comments">
         {isChildRendered && postQuery.data && (
           <CommentSection

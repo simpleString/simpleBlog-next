@@ -254,7 +254,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
             </FileUploader>
           )}
         </div>
-        <div className="shadow">
+        <div className="min-h-screen shadow">
           <MenuBar editor={editor} />
           <EditorContent editor={editor} />
         </div>

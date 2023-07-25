@@ -86,7 +86,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
   return (
     <>
-      <div className=" shadow">
+      <div className="shadow">
         <CommentForm
           onSubmit={onSubmitComment}
           loading={createCommentMutation.isLoading}
@@ -98,7 +98,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           <p>{postCommentsCount} comments</p>
           <div className="ml-auto">
             <Dropdown
-              buttonComponentClasses="btn "
+              buttonComponentClasses="btn"
               childrenClasses="p-0 w-36 menu-compact"
               buttonComponent={<span>Sort by: {order}</span>}
               dropdownClasses="dropdown-end"
