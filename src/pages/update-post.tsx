@@ -40,6 +40,7 @@ const UpdatePost: NextPageWithLayout<React.FC> = () => {
           text={post.text}
           title={post.title}
           savePost={updatePost}
+          isUpdated={true}
         />
       )}
     </>
@@ -51,4 +52,3 @@ UpdatePost.getLayout = function getLayout(page: ReactElement) {
 };
 
 export default UpdatePost;
-

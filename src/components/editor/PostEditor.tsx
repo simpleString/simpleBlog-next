@@ -1,5 +1,4 @@
 import Highlight from "@tiptap/extension-highlight";
-// import ImageTipTap, { Image } from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -19,6 +18,7 @@ import { CreatePostType } from "../../types/frontend";
 
 import { FILE_TYPES, MAX_FILE_SIZE } from "../../constants/frontend";
 import { TipTapCustomImage } from "../../utils/lib/Tiptap/TipTapCustomImage";
+import CustomModal from "../custom/CustomModal";
 
 type PostEditorProps = {
   title?: string;
@@ -26,6 +26,7 @@ type PostEditorProps = {
   image?: string | null;
   savePost: ({ title, text, image }: CreatePostType) => void;
   saveDraft?: ({ title, text, image }: CreatePostType) => Promise<void>;
+  isUpdated?: boolean;
 };
 
 const PostEditor: React.FC<PostEditorProps> = ({
@@ -34,10 +35,13 @@ const PostEditor: React.FC<PostEditorProps> = ({
   image = null,
   savePost,
   saveDraft,
+  isUpdated = false,
 }) => {
   const [content, setContent] = useState(text ?? "");
   const [postTitle, setPostTitle] = useState(title ?? "");
   const [postImage, setPostImage] = useState<string | null>(image);
+
+  const [openModal, setOpenModal] = useState(false);
 
   const [isDraftSaved, setIsDraftSaved] = useState(true);
 
@@ -107,8 +111,11 @@ const PostEditor: React.FC<PostEditorProps> = ({
     }
   };
 
-  const onButtonSaveClick = () => {
-    savePost({ title: postTitle, text: content, image: postImage });
+  const onButtonSaveClick = (confirm: boolean) => {
+    setOpenModal(false);
+    if (confirm) {
+      savePost({ title: postTitle, text: content, image: postImage });
+    }
   };
 
   const editor = useEditor({
@@ -168,7 +175,19 @@ const PostEditor: React.FC<PostEditorProps> = ({
 
   return (
     <>
-      <div className="space-y-4 shadow sm:p-4 ">
+      <CustomModal
+        isOpen={openModal}
+        onClose={onButtonSaveClick}
+        cancelButton="Cancel"
+        okButton={isUpdated ? "Update post" : "Create post"}
+        content={`Do you really want to ${
+          isUpdated ? "update" : "publish"
+        } post?`}
+        title={isUpdated ? "Update" : "Publish"}
+        okButtonStyles="btn-success"
+      />
+
+      <div className="space-y-4 shadow sm:p-4">
         <div className="w-full">
           <input
             className="input-bordered input w-full "
@@ -182,7 +201,7 @@ const PostEditor: React.FC<PostEditorProps> = ({
             <div className="indicator">
               <label
                 onClick={onButtonClearImageClick}
-                className="badge-secondary badge indicator-item top-3 right-6 cursor-pointer hover:bg-secondary-focus"
+                className="badge badge-secondary indicator-item top-3 right-6 cursor-pointer hover:bg-secondary-focus"
               >
                 <i className="ri-close-line" />
               </label>
@@ -244,18 +263,19 @@ const PostEditor: React.FC<PostEditorProps> = ({
         <button
           disabled={!postTitle}
           className="btn-primary btn"
-          onClick={onButtonSaveClick}
+          onClick={() => setOpenModal(true)}
         >
-          Save
+          {isUpdated ? "Update post" : "Create post"}
         </button>
         <NextLink href="/">
           <button className="btn-ghost btn">Close</button>
-        </NextLink>
-        {isDraftSaved ? (
-          <span className="text-success">Saved</span>
-        ) : (
-          <span className="text-warning">Saving...</span>
-        )}
+        </NextLink>{" "}
+        {!isUpdated &&
+          (isDraftSaved ? (
+            <span className="text-success">Saved</span>
+          ) : (
+            <span className="text-warning">Saving...</span>
+          ))}
       </div>
     </>
   );

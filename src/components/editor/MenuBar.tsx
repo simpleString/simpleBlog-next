@@ -56,7 +56,7 @@ export const MenuBar = ({ editor }: { editor: Editor | null }) => {
   };
 
   return (
-    <div className="sticky top-0 z-10 flex flex-wrap bg-primary p-2 shadow">
+    <div className="sticky top-0  flex flex-wrap bg-primary p-2 shadow">
       <div className="tooltip" data-tip="Bold">
         <button
           className={twMerge(

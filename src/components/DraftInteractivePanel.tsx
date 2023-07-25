@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { trpc } from "../utils/trpc";
-import ModalDelete from "./ModalDelete";
+import CustomModal from "./custom/CustomModal";
 
 type DraftInteractivePanelProps = {
   draftId: string;
@@ -28,7 +28,16 @@ const DraftInteractivePanel: React.FC<DraftInteractivePanelProps> = ({
 
   return (
     <div className="flex items-center p-4 pb-2">
-      <ModalDelete isOpen={openModal} onClose={onDeleteClick} />
+      <CustomModal
+        isOpen={openModal}
+        onClose={onDeleteClick}
+        cancelButton="Cancel"
+        okButton="Delete"
+        content=" Do you really want to delete this draft. This operation will be
+          permanent!"
+        title="Delete"
+        okButtonStyles="btn-error"
+      />
       <button onClick={() => setOpenModal(true)}>
         <i className="ri-delete-bin-line" />
       </button>
