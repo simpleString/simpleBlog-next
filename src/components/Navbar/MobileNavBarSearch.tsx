@@ -1,33 +1,33 @@
 import { useRouter } from "next/router";
-import { ChangeEvent, FormEvent, useState } from "react";
-import { NavbarSearchProps } from "./NavBarSearch";
+import { ChangeEvent, FormEvent } from "react";
+import { useSearchQueryStore } from "../../store";
+import { stateCallback } from "../../types/frontend";
 
-const MobileNavBarSearch: React.FC<NavbarSearchProps> = ({
-  setSearchMenuOpened,
-}) => {
+const MobileNavBarSearch: React.FC<{
+  setSearchMenuOpened: stateCallback<boolean>;
+}> = ({ setSearchMenuOpened }) => {
   const router = useRouter();
 
-  const [searchValue, setSearchValue] = useState("");
+  const { query, setQuery } = useSearchQueryStore();
 
   const onChagneSearchValue = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
+    setQuery(e.target.value);
   };
-
-  const closeMenu = () => setTimeout(() => setSearchMenuOpened(false), 200);
 
   const searchPosts = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    closeMenu();
-    router.push(`/post/search/${searchValue}`);
+    setSearchMenuOpened(false);
+    router.push(`/posts/search?query=${query}`);
   };
 
   return (
-    <div className="md:hidden w-full p-2 fixed bg-base-100 z-50">
+    <div className="fixed top-16 z-50 w-full bg-base-100 p-2 md:hidden">
       <form onSubmit={searchPosts} className="form-control">
         <input
           type="text"
           placeholder="Search..."
-          className="input input-bordered"
+          className="input-bordered input"
+          value={query}
           onChange={onChagneSearchValue}
         />
       </form>

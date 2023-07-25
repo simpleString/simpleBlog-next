@@ -21,10 +21,7 @@ const NavBar: React.FC = () => {
         </div>
 
         <div className="hidden w-full max-w-lg md:flex md:gap-10 md:navbar-center">
-          <NavBarSearch
-            searchMenuOpened={searchMenuOpened}
-            setSearchMenuOpened={setSearchMenuOpened}
-          />
+          <NavBarSearch />
 
           <NextLink href="/create-post">
             <a className="btn-ghost btn text-xl normal-case">Create post</a>
@@ -41,7 +38,9 @@ const NavBar: React.FC = () => {
               <i className="ri-search-line" />
             </a>
           </div>
+
           <ColorModeSwitcher />
+
           {userData ? (
             <IconMenu image={userData.image} />
           ) : (
@@ -55,10 +54,7 @@ const NavBar: React.FC = () => {
         </div>
       </div>
       {searchMenuOpened && (
-        <MobileNavBarSearch
-          searchMenuOpened={searchMenuOpened}
-          setSearchMenuOpened={setSearchMenuOpened}
-        />
+        <MobileNavBarSearch setSearchMenuOpened={setSearchMenuOpened} />
       )}
     </nav>
   );

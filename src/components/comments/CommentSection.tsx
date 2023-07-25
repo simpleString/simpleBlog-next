@@ -126,7 +126,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
           <div key={comment.id} className="p-2 shadow ">
             <MainPostComment
               comment={comment}
-              callbackUrl={"/post/" + comment.postId}
+              callbackUrl={"/posts/" + comment.postId}
             />
           </div>
         ))}

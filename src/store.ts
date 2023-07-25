@@ -21,6 +21,12 @@ type ThemeStore = {
   setTheme: (theme: ThemeType) => void;
 };
 
+type SearchQueryStore = {
+  query: string;
+  setQuery: (value: string) => void;
+  restoreQuery: () => void;
+};
+
 export const useOrderCommentStore = create<OrderCommentStore>()(
   persist(
     (set) => ({
@@ -57,3 +63,9 @@ export const useThemeStore = create<ThemeStore>()(
     { name: "theme" }
   )
 );
+
+export const useSearchQueryStore = create<SearchQueryStore>()((set) => ({
+  query: "",
+  setQuery: (value) => set({ query: value }),
+  restoreQuery: () => set({ query: "" }),
+}));

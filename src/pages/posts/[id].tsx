@@ -63,7 +63,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
             <InteractivePanel
               post={postQuery.data}
               isShowEditSection={true}
-              callbackUrl={`/post/${postQuery.data.id}`}
+              callbackUrl={`/posts/${postQuery.data.id}`}
             />
           </>
         )}
@@ -73,7 +73,7 @@ const Post: NextPageWithLayout<React.FC> = () => {
         {isChildRendered && postQuery.data && (
           <CommentSection
             postId={postQuery.data.id}
-            callbackUrl={`/post/${postQuery.data.id}`}
+            callbackUrl={`/posts/${postQuery.data.id}`}
             postCommentsCount={postQuery.data.commentsCount}
           />
         )}

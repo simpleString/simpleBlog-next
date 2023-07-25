@@ -8,7 +8,7 @@ import SearchComponent, {
 import { POST_LIMIT } from "../../../constants/frontend";
 import { useOnScreen } from "../../../hooks/useOnScreen";
 import { Layout } from "../../../layouts/Layout";
-import { useOrderSearchPostsStore } from "../../../store";
+import { useOrderSearchPostsStore, useSearchQueryStore } from "../../../store";
 import { trpc } from "../../../utils/trpc";
 import { NextPageWithLayout } from "../../_app";
 
@@ -17,7 +17,9 @@ type AdvanceSearchValueType = FormInputType;
 const Search: NextPageWithLayout<React.FC> = () => {
   const router = useRouter();
 
-  const query = router.query.query as string;
+  const restoreQuery = useSearchQueryStore((store) => store.restoreQuery);
+
+  const query = router.query.query;
 
   const bottomOfPosts = useRef<HTMLDivElement>(null);
   const isOnScreen = useOnScreen(bottomOfPosts);
@@ -35,9 +37,15 @@ const Search: NextPageWithLayout<React.FC> = () => {
   } = trpc.useInfiniteQuery(
     [
       "post.search",
-      { limit: POST_LIMIT, orderBy: order, query, ...advanceSearchParams },
+      {
+        limit: POST_LIMIT,
+        orderBy: order,
+        query: query as string,
+        ...advanceSearchParams,
+      },
     ],
     {
+      enabled: !!query,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -50,6 +58,12 @@ const Search: NextPageWithLayout<React.FC> = () => {
     if (isOnScreen) handleFetchNextPage();
   }, [isOnScreen, fetchNextPage]);
 
+  useEffect(() => {
+    return () => {
+      restoreQuery();
+    };
+  }, [restoreQuery]);
+
   const onSubmitSearch = (data: AdvanceSearchValueType) => {
     setAdvanceSearchParams(data);
   };
@@ -58,7 +72,7 @@ const Search: NextPageWithLayout<React.FC> = () => {
     <div className="md:p-4">
       <SearchComponent
         submitFn={onSubmitSearch}
-        query={query}
+        query={typeof query === "string" ? query : ""}
         resultCount={data?.pages[0]?.postsCount ?? 0}
       />
       {postLoading ? (

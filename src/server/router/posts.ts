@@ -87,6 +87,12 @@ export const postRouter = createRouter()
 
       const userId = ctx.session?.user?.id;
 
+      console.log(typeof query);
+
+      if (!query) {
+        return { posts: [], postsCount: 0, nextCursor: undefined };
+      }
+
       const [postsCount, posts] = await ctx.prisma.$transaction(
         async (prisma) => {
           const postsCount = await prisma.post.count({

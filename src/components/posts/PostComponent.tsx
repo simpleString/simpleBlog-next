@@ -16,9 +16,9 @@ export const PostComponent: React.FC<PostProps> = ({ post }) => {
         username={post.user.name}
       />
 
-      <PostTitle link={`/post/${post.id}`} title={post.title} />
+      <PostTitle link={`/posts/${post.id}`} title={post.title} />
 
-      {post.image && <PostImage image={post.image} link={`/post/${post.id}`} />}
+      {post.image && <PostImage image={post.image} link={`s/${post.id}`} />}
       <InteractivePanel post={post} callbackUrl={"/"} />
     </div>
   );

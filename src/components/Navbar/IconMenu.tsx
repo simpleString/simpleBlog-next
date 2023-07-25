@@ -26,6 +26,13 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
         </div>
       }
     >
+      <li className="block md:hidden">
+        <NextLink href="/create-post">
+          <a>
+            <i className="ri-pencil-line ri-xl" /> Create post
+          </a>
+        </NextLink>
+      </li>
       <li>
         <NextLink href="/profile">
           <a>Profile</a>
@@ -37,7 +44,7 @@ const IconMenu: React.FC<IconMenuProps> = ({ image }) => {
         </NextLink>
       </li>
       <li>
-        <NextLink href="/post/saved">
+        <NextLink href="/posts/saved">
           <a>Saved Posts</a>
         </NextLink>
       </li>

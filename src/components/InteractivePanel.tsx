@@ -40,7 +40,7 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
 
   return (
     <div className="flex items-center p-4 pb-2">
-      <NextLink href={`/post/${post.id}#comments`}>
+      <NextLink href={`/posts/${post.id}#comments`}>
         <a className="group flex space-x-1 duration-500 hover:text-primary motion-safe:hover:scale-110">
           <i className="ri-chat-1-line" />
           <span>{post?.commentsCount}</span>
