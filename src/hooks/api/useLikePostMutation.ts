@@ -37,7 +37,7 @@ export const useLikePostMutation = ({ post }: useLikePostMutationType) => {
 
       const previousBookedPostsList = utils.getInfiniteQueryData([
         "post.bookedPosts",
-        { orderBy: order, limit: POST_LIMIT },
+        { limit: POST_LIMIT },
       ]);
 
       if (previousPost) {
@@ -112,12 +112,16 @@ export const useLikePostMutation = ({ post }: useLikePostMutationType) => {
         };
 
         utils.setInfiniteQueryData(
-          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          ["post.bookedPosts", { limit: POST_LIMIT }],
           optimisticUpdatedBookedPostsList
         );
       }
 
-      return { previousPost, previousPostsList, previousBookedPostsList };
+      return {
+        previousPost,
+        previousPostsList,
+        previousBookedPostsList,
+      };
     },
 
     onError(_err, _newData, context) {
@@ -141,10 +145,14 @@ export const useLikePostMutation = ({ post }: useLikePostMutationType) => {
 
       if (context.previousBookedPostsList) {
         utils.setInfiniteQueryData(
-          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          ["post.bookedPosts", { limit: POST_LIMIT }],
           context.previousBookedPostsList
         );
       }
+    },
+
+    onSuccess() {
+      utils.invalidateQueries("post.search");
     },
   });
 };

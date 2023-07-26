@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useRef, useState } from "react";
 import LoadingSpinner from "../../../components/LoadingSpinner";
-import { PostComponent } from "../../../components/posts/PostComponent";
 import SearchComponent, {
   FormInputType,
 } from "../../../components/SearchComponent";
+import { PostComponent } from "../../../components/posts/PostComponent";
 import { POST_LIMIT } from "../../../constants/frontend";
 import { useOnScreen } from "../../../hooks/useOnScreen";
 import { Layout } from "../../../layouts/Layout";

@@ -1,4 +1,4 @@
-import { Post } from "@prisma/client";
+import type { Post } from "@prisma/client";
 import { BEST_POST_THRESHOLD } from "../../../constants/backend";
 import { getSearchInterval } from "../../utils/getSearchInterval";
 import type { AlgorithmsType } from "../posts.service";

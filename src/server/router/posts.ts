@@ -6,6 +6,7 @@ import { getPosts } from "../services/posts.service";
 import { getLikeValue } from "../utils/getLikeValue";
 import { createRouter } from "./context";
 import { createProtectedRouter } from "./protected-router";
+import { getBestPostByAllTimes } from "../services/sortingAlgorithms/getBestPostByAllTimes";
 
 type PostOutputType = Post & {
   user: User;
@@ -23,6 +24,7 @@ type InfiniteSearchPostsOutputType = InfinitePostsOutputType & {
 };
 
 const ZodOrderByField = z.enum(["best", "new", "hot"]);
+const ZodOrderByFieldSearch = z.enum(["best", "new"]);
 export type OrderByFieldType = z.infer<typeof ZodOrderByField>;
 
 export const postRouter = createRouter()
@@ -61,7 +63,7 @@ export const postRouter = createRouter()
       query: z.string(),
       limit: z.number().min(1).max(100).nullish(),
       cursor: z.string().cuid().optional(),
-      orderBy: ZodOrderByField,
+      orderBy: ZodOrderByFieldSearch,
       skip: z.number().optional(),
       author: z.string().optional(),
       dateFrom: z.date().optional(),
@@ -87,57 +89,68 @@ export const postRouter = createRouter()
 
       const userId = ctx.session?.user?.id;
 
-      console.log(typeof query);
-
       if (!query) {
         return { posts: [], postsCount: 0, nextCursor: undefined };
       }
 
-      const [postsCount, posts] = await ctx.prisma.$transaction(
-        async (prisma) => {
-          const postsCount = await prisma.post.count({
-            cursor: cursor ? { id: cursor } : undefined,
-            take: limit + 1,
-            skip,
-            where: {
-              likesValue: { gte: ratingFrom, lte: ratingTo },
-              createdAt: { gte: dateFrom, lte: dateTo },
-              user: { name: { contains: author } },
-              title: { contains: query },
-              ...(bookmark && userId && { bookmarks: { some: { userId } } }),
-            },
-          });
+      let posts: Awaited<ReturnType<typeof getBestPostByAllTimes>> = [];
 
-          const innerPosts = await ctx.prisma.post.findMany({
-            cursor: cursor ? { id: cursor } : undefined,
-            take: limit + 1,
-            skip,
-            where: {
-              likesValue: { gte: ratingFrom, lte: ratingTo },
-              createdAt: { gte: dateFrom, lte: dateTo },
-              user: { name: { contains: author } },
-              title: { contains: query },
-              ...(bookmark && userId && { bookmarks: { some: { userId } } }),
-            },
-            include: {
-              user: true,
-              likes: { where: { userId }, take: 1 },
-              bookmarks: { where: { userId }, take: 1 },
-            },
-            orderBy: {
-              ...(orderBy === "best" && { likesValue: "desc" }),
-              ...(orderBy === "new" && { createdAt: "desc" }),
-            },
-          });
-
-          return [postsCount, innerPosts];
-        }
-      );
+      if (input.orderBy === "best") {
+        posts = await getBestPostByAllTimes({
+          ctx,
+          cursor,
+          limit,
+          searchQuery: query,
+          skip: skip ?? 0,
+          userId,
+          author,
+          bookmark,
+          dateFrom,
+          dateTo,
+          ratingFrom,
+          ratingTo,
+        });
+      } else {
+        posts = await ctx.prisma.post.findMany({
+          cursor: cursor ? { id: cursor } : undefined,
+          take: limit + 1,
+          skip,
+          where: {
+            likesValue: { gte: ratingFrom, lte: ratingTo },
+            createdAt: { gte: dateFrom, lte: dateTo },
+            user: { name: { contains: author } },
+            title: { contains: query },
+            ...(bookmark && userId && { bookmarks: { some: { userId } } }),
+          },
+          include: {
+            user: true,
+            likes: { where: { userId }, take: 1 },
+            bookmarks: { where: { userId }, take: 1 },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+      }
 
       let nextCursor: typeof cursor = undefined;
       if (posts.length > limit) {
-        const nextItem = posts.pop();
-        if (nextItem) nextCursor = nextItem.id;
+        if (orderBy === "best") {
+          const newPosts = [...posts];
+          newPosts.sort((a, b) => {
+            if (a.createdAt < b.createdAt) return 1;
+            else if (a.createdAt > b.createdAt) return -1;
+            else return 0;
+          });
+          const nextItem = newPosts.pop();
+          posts = posts.filter((post) => {
+            return post.id !== nextItem?.id;
+          });
+          if (nextItem) nextCursor = nextItem.id;
+        } else {
+          const nextItem = posts.pop();
+          if (nextItem) nextCursor = nextItem.id;
+        }
       }
 
       return {
@@ -147,7 +160,7 @@ export const postRouter = createRouter()
           likedByMe: post.likes[0]?.isPositive,
         })),
         nextCursor,
-        postsCount,
+        postsCount: posts.length,
       };
     },
   })
@@ -240,47 +253,30 @@ export const postRouter = createRouter()
         input: z.object({
           limit: z.number().min(1).max(100).nullish(),
           cursor: z.string().cuid().optional(),
-          orderBy: ZodOrderByField,
           skip: z.number().optional(),
         }),
         async resolve({ ctx, input }): Promise<InfiniteSearchPostsOutputType> {
           const limit = input.limit ?? DEFAULT_POST_LIMIT;
-          const { cursor, skip, orderBy } = input;
+          const { cursor, skip } = input;
 
           const userId = ctx.session?.user?.id;
 
-          const [postsCount, posts] = await ctx.prisma.$transaction(
-            async (prisma) => {
-              const postsCount = await prisma.post.count({
-                cursor: cursor ? { id: cursor } : undefined,
-                take: limit + 1,
-                skip,
-                where: {
-                  bookmarks: { some: { userId } },
-                },
-              });
-
-              const innerPosts = await ctx.prisma.post.findMany({
-                cursor: cursor ? { id: cursor } : undefined,
-                take: limit + 1,
-                skip,
-                where: {
-                  bookmarks: { some: { userId } },
-                },
-                include: {
-                  user: true,
-                  likes: { where: { userId }, take: 1 },
-                  bookmarks: { where: { userId }, take: 1 },
-                },
-                orderBy: {
-                  ...(orderBy === "best" && { likesValue: "desc" }),
-                  ...(orderBy === "new" && { createdAt: "desc" }),
-                },
-              });
-
-              return [postsCount, innerPosts];
-            }
-          );
+          const posts = await ctx.prisma.post.findMany({
+            cursor: cursor ? { id: cursor } : undefined,
+            take: limit + 1,
+            skip,
+            where: {
+              bookmarks: { some: { userId } },
+            },
+            include: {
+              user: true,
+              likes: { where: { userId }, take: 1 },
+              bookmarks: { where: { userId }, take: 1 },
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
+          });
 
           let nextCursor: typeof cursor = undefined;
           if (posts.length > limit) {
@@ -295,7 +291,7 @@ export const postRouter = createRouter()
               likedByMe: post.likes[0]?.isPositive,
             })),
             nextCursor,
-            postsCount,
+            postsCount: posts.length,
           };
         },
       })

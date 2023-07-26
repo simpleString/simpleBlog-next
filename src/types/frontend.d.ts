@@ -26,9 +26,13 @@ export type PostOrderByFieldType = Pick<
   "orderBy"
 >["orderBy"];
 
+export type PostOrderByFieldSearchType = Pick<
+  inferQueryInput<"post.search">,
+  "orderBy"
+>["orderBy"];
+
 export type CreatePostType = {
   title: string;
   text: string;
   image: string | null;
 };
-

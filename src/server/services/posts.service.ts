@@ -25,12 +25,6 @@ export type AlgorithmsType = Omit<getPostsType, "orderBy"> & {
   userId: string | undefined;
 };
 
-export type getBookmarkedPostsType = getPostsType;
-
-export type AlhorithmsBookmarkedType = Omit<getPostsType, "orderBy"> & {
-  userId: string;
-};
-
 export const getPosts = async ({
   ctx,
   cursor,

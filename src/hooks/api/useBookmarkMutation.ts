@@ -36,7 +36,7 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
 
       const previousBookedPostsList = utils.getInfiniteQueryData([
         "post.bookedPosts",
-        { orderBy: order, limit: POST_LIMIT },
+        { limit: POST_LIMIT },
       ]);
 
       if (previousPost) {
@@ -48,7 +48,7 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
 
       if (previousBookedPostsList) {
         utils.setInfiniteQueryData(
-          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          ["post.bookedPosts", { limit: POST_LIMIT }],
           {
             pages: previousBookedPostsList.pages.map((page) => ({
               ...page,
@@ -114,10 +114,14 @@ export const useBookmarkMutation = ({ post }: useBookmarkMutationType) => {
 
       if (context.previousBookedPostsList) {
         utils.setInfiniteQueryData(
-          ["post.bookedPosts", { orderBy: order, limit: POST_LIMIT }],
+          ["post.bookedPosts", { limit: POST_LIMIT }],
           context.previousBookedPostsList
         );
       }
+    },
+
+    onSuccess() {
+      utils.invalidateQueries("post.search");
     },
   });
 };

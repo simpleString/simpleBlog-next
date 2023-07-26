@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import {
   CommentOrderByFieldType,
+  PostOrderByFieldSearchType,
   PostOrderByFieldType,
 } from "./types/frontend";
 
@@ -13,6 +14,11 @@ type OrderCommentStore = {
 type OrderPostStore = {
   order: PostOrderByFieldType;
   changeOrder: (order: PostOrderByFieldType) => void;
+};
+
+type OrderSearchPostStore = {
+  order: PostOrderByFieldSearchType;
+  changeOrder: (order: PostOrderByFieldSearchType) => void;
 };
 
 type ThemeType = "bumblebee" | "dark";
@@ -47,10 +53,12 @@ export const useOrderPostStore = create<OrderPostStore>()(
   )
 );
 
-export const useOrderSearchPostsStore = create<OrderPostStore>()((set) => ({
-  order: "best",
-  changeOrder: (order) => set({ order }),
-}));
+export const useOrderSearchPostsStore = create<OrderSearchPostStore>()(
+  (set) => ({
+    order: "best",
+    changeOrder: (order) => set({ order }),
+  })
+);
 
 export const useThemeStore = create<ThemeStore>()(
   persist(

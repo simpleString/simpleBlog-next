@@ -24,12 +24,12 @@ export const useCreateCommentMutation = ({
 
       const previousBookedPostsList = utils.getInfiniteQueryData([
         "post.bookedPosts",
-        { orderBy: postOrder, limit: POST_LIMIT },
+        { limit: POST_LIMIT },
       ]);
 
       if (previousBookedPostsList) {
         utils.setInfiniteQueryData(
-          ["post.bookedPosts", { orderBy: postOrder, limit: POST_LIMIT }],
+          ["post.bookedPosts", { limit: POST_LIMIT }],
           {
             pages: previousBookedPostsList.pages.map((page) => ({
               ...page,
@@ -99,6 +99,8 @@ export const useCreateCommentMutation = ({
           return [data, ...old];
         }
       );
+
+      utils.invalidateQueries("post.search");
     },
   });
 };

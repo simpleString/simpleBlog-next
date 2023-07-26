@@ -70,8 +70,6 @@ const Profile: NextPageWithLayout<React.FC> = () => {
           closeButton: true,
         });
       }
-    } finally {
-      setbase64Image(undefined);
     }
   };
 
