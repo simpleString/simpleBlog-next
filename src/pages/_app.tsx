@@ -15,8 +15,8 @@ import { usePreserveScroll } from "../hooks/usePreserveScroll";
 import { TRPCClientError } from "@trpc/client";
 import Modal from "react-modal";
 import { toast } from "react-toastify";
-import ServerErrorPage from "./500";
 import { useThemeStore } from "../store";
+import ServerErrorPage from "./500";
 
 export type NextPageWithLayout<P = Record<string, void>, IP = P> = NextPage<
   P,
@@ -45,6 +45,11 @@ const MyApp = ({
     const body = document.body;
     body.setAttribute("data-theme", colorTheme);
   }, [colorTheme]);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    console.log = console.warn = () => {};
+  }, []);
 
   return (
     <SessionProvider session={session}>

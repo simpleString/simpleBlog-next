@@ -10,20 +10,13 @@ export const uploadImagePlugin = (upload: UploadFn) => {
   return new Plugin({
     props: {
       handlePaste(view, event) {
-        console.log("----onhandlePaste image---");
-
         const items = Array.from(event.clipboardData?.items || []);
         const { schema } = view.state;
-
-        console.log({ items });
 
         items.forEach((item) => {
           const image = item.getAsFile();
 
-          console.log({ image, item });
-
           if (item.type.indexOf("image") === 0) {
-            console.log("item is an image");
             event.preventDefault();
 
             if (upload && image) {
@@ -57,7 +50,6 @@ export const uploadImagePlugin = (upload: UploadFn) => {
       },
       handleDOMEvents: {
         drop(view, event) {
-          console.log("----handleDom.onDrop----");
           const hasFiles = event.dataTransfer?.files?.length;
 
           if (!hasFiles) {

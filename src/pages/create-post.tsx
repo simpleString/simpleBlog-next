@@ -9,6 +9,7 @@ import type { NextPageWithLayout } from "./_app";
 
 import { toast } from "react-toastify";
 import { CreatePostType } from "../types/frontend";
+import MetaHead from "../components/MetaHead";
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   const session = useSession({ required: true });
@@ -89,6 +90,12 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
 
   return (
     <>
+      <MetaHead
+        pageTitle="Create post"
+        description="Post creating for simplestring blog"
+        author={session.data.user?.name ?? undefined}
+      />
+
       {draftData ? (
         <PostEditor
           key={"editor"}

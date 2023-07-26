@@ -26,8 +26,6 @@ export type FormInputType = {
 };
 
 const resolver: Resolver<FormInputType> = async (data) => {
-  console.log("Resolve data: " + data);
-
   if (data.ratingTo && data.ratingFrom && data.ratingTo < data.ratingFrom) {
     return {
       values: {},
@@ -101,7 +99,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   }, [currentRatingFromValue, getValues, setValue]);
 
   const onSubmit = handleSubmit((data) => {
-    console.log(data);
     submitFn(data);
   });
 

@@ -9,9 +9,10 @@ import { fileUploader } from "../utils/fileUploader";
 import { generateBase64Image } from "../utils/generateBase64Image";
 import { trpc } from "../utils/trpc";
 import { NextPageWithLayout } from "./_app";
+import MetaHead from "../components/MetaHead";
 
 const Profile: NextPageWithLayout<React.FC> = () => {
-  useSession({ required: true });
+  const session = useSession({ required: true });
   const utils = trpc.useContext();
 
   const me = trpc.useQuery(["user.me"], { enabled: true });
@@ -78,63 +79,72 @@ const Profile: NextPageWithLayout<React.FC> = () => {
   }
 
   return (
-    <div className="  flex w-full flex-wrap bg-base-100 p-4 shadow">
-      <div className="flex w-full flex-wrap items-center gap-8">
-        <div className="indicator h-max ">
-          <div className="avatar">
-            <div className="w-32">
-              <Image
-                src={base64Image ?? me.data?.image ?? "/user-placeholder.jpg"}
-                alt="Profile image"
-                layout="fill"
-                loading="eager"
-                className="rounded-full"
-              />
-            </div>
-          </div>
-          <label
-            className="btn-secondary btn-xs btn absolute right-0 top-3"
-            tabIndex={0}
-          >
-            <i className="ri-upload-line" />
-            <input
-              className="hidden"
-              onChange={onFileChange}
-              type="file"
-              accept="image/png, image/jpeg"
-            />
-          </label>
-        </div>
-        <div className="flex-1 justify-self-center">
-          <p className="my-4 text-3xl font-bold">{me.data?.name}</p>
-          <p className="font-medium">User email: {me.data?.email}</p>
-        </div>
-      </div>
+    <>
+      <MetaHead
+        pageTitle={session.data?.user?.name ?? undefined}
+        description={`SimpleString bloge user ${session.data?.user?.name} profile`}
+        author={session.data?.user?.name ?? undefined}
+        image={session.data?.user?.image ?? undefined}
+      />
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (name) {
-            updateUserData.mutateAsync({ name });
-          }
-        }}
-        className="form-control w-full p-4"
-      >
-        <label className="label" htmlFor="name">
-          Name
-        </label>
-        <input
-          id="name"
-          value={name ?? ""}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-          className="input-primary input mb-4"
-        />
-        <button type="submit" className="btn mb-4">
-          Update name
-        </button>
-      </form>
-    </div>
+      <div className="  flex w-full flex-wrap bg-base-100 p-4 shadow">
+        <div className="flex w-full flex-wrap items-center gap-8">
+          <div className="indicator h-max ">
+            <div className="avatar">
+              <div className="w-32">
+                <Image
+                  src={base64Image ?? me.data?.image ?? "/user-placeholder.jpg"}
+                  alt="Profile image"
+                  layout="fill"
+                  loading="eager"
+                  className="rounded-full"
+                />
+              </div>
+            </div>
+            <label
+              className="btn-secondary btn-xs btn absolute right-0 top-3"
+              tabIndex={0}
+            >
+              <i className="ri-upload-line" />
+              <input
+                className="hidden"
+                onChange={onFileChange}
+                type="file"
+                accept="image/png, image/jpeg"
+              />
+            </label>
+          </div>
+          <div className="flex-1 justify-self-center">
+            <p className="my-4 text-3xl font-bold">{me.data?.name}</p>
+            <p className="font-medium">User email: {me.data?.email}</p>
+          </div>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (name) {
+              updateUserData.mutateAsync({ name });
+            }
+          }}
+          className="form-control w-full p-4"
+        >
+          <label className="label" htmlFor="name">
+            Name
+          </label>
+          <input
+            id="name"
+            value={name ?? ""}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            className="input-primary input mb-4"
+          />
+          <button type="submit" className="btn mb-4">
+            Update name
+          </button>
+        </form>
+      </div>
+    </>
   );
 };
 
