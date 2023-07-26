@@ -121,10 +121,10 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   };
 
   return (
-    <div className="bg-base-200">
+    <div className="mb-8l bg-base-200">
       <div className="flex flex-col space-y-4 p-4">
-        <div className="flex flex-col">
-          <span className="text-5xl font-semibold">{query}</span>
+        <div className="flex flex-col space-y-4">
+          <span className="break-all text-5xl font-semibold">{query}</span>
           <span className="text-xl ">Result count: {resultCount}</span>
         </div>
         <form onSubmit={onSubmit} className="flex flex-col space-y-2">
@@ -159,13 +159,13 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
           {errors.ratingTo && <p>{errors.ratingTo.message}</p>}
 
           <span>Date</span>
-          <div className="flex items-center justify-center space-x-2">
+          <div className="flex items-center justify-center space-x-2 ">
             <Datepicker
               placeholder="From"
               useRange={false}
               asSingle={true}
               maxDate={getValues("dateTo")}
-              inputClassName={`input-bordered input w-full text-base font-normal`}
+              inputClassName={`input-bordered input w-full text-base font-normal bg-base-100`}
               value={fromDateValue}
               onChange={(value) =>
                 setValue(
@@ -178,7 +178,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             <Datepicker
               placeholder="To"
               minDate={getValues("dateFrom")}
-              inputClassName={`input-bordered input w-full text-base font-normal`}
+              inputClassName={`input-bordered input w-full text-base font-normal bg-base-100`}
               useRange={false}
               asSingle={true}
               value={toDateValue}

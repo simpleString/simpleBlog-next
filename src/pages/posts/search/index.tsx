@@ -77,6 +77,12 @@ const Search: NextPageWithLayout<React.FC> = () => {
       />
       {postLoading ? (
         <LoadingSpinner />
+      ) : data?.pages[0]?.posts.length === 0 ? (
+        <div className="flex h-56 items-center justify-center p-4">
+          <h2 className="text-center text-2xl">
+            Sorry, but we didn&apos;t find anything
+          </h2>
+        </div>
       ) : (
         data?.pages?.map((page) =>
           page.posts.map((post) => <PostComponent key={post.id} post={post} />)

@@ -43,7 +43,7 @@ const Home: NextPageWithLayout<React.FC> = () => {
 
   return (
     <div className="md:p-4">
-      <div className="ml-auto">
+      <div className="flex justify-end p-4 ">
         <Dropdown
           buttonComponentClasses="btn "
           childrenClasses="p-0 w-36 menu-compact"

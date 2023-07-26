@@ -39,14 +39,17 @@ const InteractivePanel: React.FC<InteractivePanelProps> = ({
   const isUserOwner = session.data?.user?.id === post.userId;
 
   return (
-    <div className="flex items-center p-4 pb-2">
+    <div className="flex items-center gap-2 p-4 pb-2">
       <NextLink href={`/posts/${post.id}#comments`}>
         <a className="group flex space-x-1 duration-500 hover:text-primary motion-safe:hover:scale-110">
           <i className="ri-chat-1-line" />
           <span>{post?.commentsCount}</span>
         </a>
       </NextLink>
-      <button onClick={() => bookmarkPost(post.id)}>
+      <button
+        onClick={() => bookmarkPost(post.id)}
+        className="flex items-center duration-500 hover:text-primary motion-safe:hover:scale-110"
+      >
         <i
           className={`${
             post.bookmarked ? "ri-bookmark-fill" : "ri-bookmark-line"

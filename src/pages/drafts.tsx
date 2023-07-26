@@ -10,11 +10,22 @@ const DraftList = () => {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <>
-      {drafts?.map((draft) => (
-        <DraftPostComponent draft={draft} key={draft.id} />
-      ))}
-    </>
+    <div>
+      <h1 className="mb-4 bg-gradient-to-tr from-primary-focus to-primary-content bg-clip-text text-center text-5xl font-medium text-transparent">
+        Drafts
+      </h1>
+      {drafts?.length === 0 ? (
+        <div className="flex h-96 items-center justify-center p-4">
+          <h2 className="text-center text-2xl">
+            Sorry, but you not draft no one post
+          </h2>
+        </div>
+      ) : (
+        drafts?.map((draft) => (
+          <DraftPostComponent draft={draft} key={draft.id} />
+        ))
+      )}
+    </div>
   );
 };
 
