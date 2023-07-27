@@ -8,8 +8,8 @@ import { trpc } from "../utils/trpc";
 import type { NextPageWithLayout } from "./_app";
 
 import { toast } from "react-toastify";
-import { CreatePostType } from "../types/frontend";
 import MetaHead from "../components/MetaHead";
+import { CreatePostType } from "../types/frontend";
 
 const CreatePost: NextPageWithLayout<React.FC> = () => {
   const session = useSession({ required: true });
@@ -35,6 +35,7 @@ const CreatePost: NextPageWithLayout<React.FC> = () => {
       utils.invalidateQueries(["post.drafts"]);
     },
   });
+
   const draftMutation = trpc.useMutation(["post.draftPost"], {
     onSuccess(draft) {
       utils.invalidateQueries(["post.drafts"]);
