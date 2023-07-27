@@ -9,7 +9,7 @@
 ## Using thecnologies
 
 - **Nextjs** for backend + frontend
-- Supabase (PostgreSQL + object storage)
+- **Supabase** (PostgreSQL + object storage)
 - **tRPC** for typesave transfer data between front and back
 - **Tailwind CSS** for styling
 - **NextAuth.js** for all stuff with authentication
